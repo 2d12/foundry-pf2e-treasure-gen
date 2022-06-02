@@ -163,7 +163,7 @@ const formContent = `
 <div><label for="quantity">Rolls Per Token</label><input class="treasureOption" type="number" name="quantity" id="quantity" min="1" max="30"><br></div>
 
 <div id="treasurelvl">
-<label for="level">Treasure Level</label> <input class="treasureOption"  type="number" name="level" id="level" min="-1" max="30" value="`+defaultLevel+`"><br>
+<label for="level">Treasure Level</label> <input type="number" name="level" id="level" min="-1" max="30" value="`+defaultLevel+`"><br>
 </div>
 
 <h3>Weights (Hard)</h3>
@@ -277,18 +277,17 @@ async function GenerateAllTreasure(html)
 {
 	UpdateAllWeights(html);
 	
-	var clearInventory = html.find('[name=clearInventory]')[0].checked;
-	var addToInventory = html.find('[name=insertInventory]')[0].checked;
-	var baseItemLevel = html.find('[name=level]')[0].value;
-	if (html.find('[name=useSelectedTokenLevel]')[0].checked && macroActor !== null && macroActor !== undefined)
+	var addToInventory = settings.insertInventory; // As of 2 June 22, this value isn't used yet.
+	var baseItemLevel = html.find('[name=level]')[0].value; // This value isn't saved in settings, so get from html
+	if (settings.useSelectedTokenLevel && macroActor !== null && macroActor !== undefined)
 		baseItemLevel=macroActor.data.data.details.level.value; // This should be redundant, but just in case;
-	var chanceToIncreaseLevel = html.find('[name=levelplus]')[0].value;
-	var chanceToDecreaseLevel = html.find('[name=levelminus]')[0].value;
+	var chanceToIncreaseLevel = settings.levelplus;
+	var chanceToDecreaseLevel = settings.levelminus;
 	
-	if (clearInventory)
+	if (settings.clearInventory)
 		ClearTokenInventory();
 	
-	var numberOfTreasureRolls = html.find('[name=quantity]')[0].value;
+	var numberOfTreasureRolls = settings.quantity;
 	console.log(numberOfTreasureRolls + " rolls to make.");
 	let items = [];
 	for (let i = 0; i < numberOfTreasureRolls; i++)
@@ -319,23 +318,27 @@ async function GenerateAllTreasure(html)
 				if (ptype === "perm_armor" || ptype==="perm_armor_generic")
 				{
 					LogToChat("Pulling armor");
-										let probabilities = {generic:ptype==="perm_armor_generic"?100:0,
-										precious:parseInt(html.find('[name=armormaterial]')[0].value),
-										potency:parseInt(html.find('[name=armorpotency]')[0].value),
-										striking:parseInt(html.find('[name=armorresilient]')[0].value),
-										property:parseInt(html.find('[name=armorproperty]')[0].value)
-										};
+					let probabilities = 
+						{
+						generic:ptype==="perm_armor_generic"?100:0,
+						precious:settings.armormaterial,
+						potency:settings.armorpotency,
+						resilient:settings.armorresilient,
+						property:settings.armorproperty)
+						};
 					let itemDrawn = await PullArmor(iLevel, probabilities);
 					items.push(...itemDrawn);
 				}
 				else if (ptype === "perm_weapon" || ptype==="perm_weapon_generic")
 				{
 					LogToChat("Pulling weapon");
-					let probabilities = {generic:ptype==="perm_weapon_generic"?100:0,
-										precious:parseInt(html.find('[name=weaponmaterial]')[0].value),
-										potency:parseInt(html.find('[name=weaponpotency]')[0].value),
-										striking:parseInt(html.find('[name=weaponstriking]')[0].value),
-										property:parseInt(html.find('[name=weaponproperty]')[0].value)
+					let probabilities = 
+						{
+						generic:ptype==="perm_weapon_generic"?100:0,
+						precious:settings.weaponmaterial,
+						potency:settings.weaponpotency,
+						striking:settings.weaponstriking,
+						property:settings.weaponproperty)
 										};
 					let itemDrawn = await PullWeapon(iLevel, probabilities);
 					items.push(...itemDrawn);
@@ -360,10 +363,10 @@ async function GenerateAllTreasure(html)
 		{
 			LogToChat("Pulling money");
 			let options = {
-					pcs:parseInt(html.find('[name=pcCount]')[0].value),
-					flux:parseInt(html.find('[name=moneyflux]')[0].value),
-					cashOnly:parseInt(html.find('[name=cashOnly]')[0].value),
-					divisor:parseInt(html.find('[name=moneyDivisor]')[0].value),
+					pcs:settings.pcCount,
+					flux:settings.moneyflux,
+					cashOnly:settings.cashOnly,
+					divisor:settings.moneyDivisor,
 				};
 				let itemsDrawn = await PullMoney(iLevel, options);
 				await items.push(...itemsDrawn);
@@ -378,7 +381,7 @@ async function GenerateAllTreasure(html)
 	console.log(items);
 }
 
-async function GetItemLevel(baseLevel,chanceToIncrease, chanceToDecrease)
+async function GetItemLevel(baseLevel, chanceToIncrease, chanceToDecrease)
 {
 	let finalLevel = baseLevel;
 	let levelText = await DrawTextFromTable("Treasure Level");
@@ -1359,18 +1362,18 @@ async function UpdateAllWeights(html)
 	UpdateOptions(html, "Options");
 	UpdateWeights(html, "Source",false);
 	
-	weightMappings.rarity.common=html.find('[name=common]')[0].value;
-	weightMappings.rarity.uncommon=html.find('[name=uncommon]')[0].value;
-	weightMappings.rarity.rare=html.find('[name=rare]')[0].value;
-	weightMappings.rarity.unique=html.find('[name=unique]')[0].value;
+	weightMappings.rarity.common=settings.common;
+	weightMappings.rarity.uncommon=settings.uncommon;
+	weightMappings.rarity.rare=settings.rare;
+	weightMappings.rarity.unique=settings.unique;
 	
-	weightMappings.weapon.simple=html.find('[name=simple]')[0].value;
-	weightMappings.weapon.martial=html.find('[name=martial]')[0].value;
-	weightMappings.weapon.advanced=html.find('[name=advanced]')[0].value;
+	weightMappings.weapon.simple=settings.simple;
+	weightMappings.weapon.martial=settings.martial;
+	weightMappings.weapon.advanced=settings.advanced;
 	
-	weightMappings.armor.light=html.find('[name=light]')[0].value;
-	weightMappings.armor.medium=html.find('[name=medium]')[0].value;
-	weightMappings.armor.heavy=html.find('[name=heavy]')[0].value;
+	weightMappings.armor.light=settings.light;
+	weightMappings.armor.medium=settings.medium;
+	weightMappings.armor.heavy=settings.heavy;
 	
 	console.log(weightMappings);
 }
