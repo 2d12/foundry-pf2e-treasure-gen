@@ -3,17 +3,24 @@
 //TODO: Actually display in chat if needed
 //TODO: Work on all selected tokens
 //TODO: Separate settings into different GUIs.
-//TODO: Use settings for all data instead of html values.
 
 const thisMacro = this;
 let defaultLevel = 1;
-let macroActor = null;
-if (token !== null && token !== undefined)
-	macroActor = token.actor;
-if (macroActor !== null && macroActor !== undefined)
+
+const selectedTokens = canvas.tokens.controlled;
+let actors = selectedTokens.flatMap((token) => token.actor ?? []);
+if (actors.length !== 0)
 {
-	defaultLevel = macroActor.data.data.details.level.value;
+	actors.forEach(actor=> defaultLevel = Math.max(defaultLevel, actor.data.data.details.level.value));
 }
+
+//let macroActor = null;
+//if (token !== null && token !== undefined)
+//	macroActor = token.actor;
+//if (macroActor !== null && macroActor !== undefined)
+//{
+//	defaultLevel = macroActor.data.data.details.level.value;
+//}
 
 const CompendiumID = "pf2e.equipment-srd";
 const PlatinumID = "JuNPeK5Qm1w6wpb4";
