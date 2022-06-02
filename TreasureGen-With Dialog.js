@@ -3,6 +3,7 @@
 //TODO: Actually display in chat if needed
 //TODO: Work on all selected tokens
 //TODO: Separate settings into different GUIs.
+//TODO: Treasure isn't properly filtering by cost
 
 const thisMacro = this;
 let defaultLevel = 1;
@@ -280,112 +281,153 @@ async function handleUpdates(html)
 	html.find('.treasureSource').on("change",function(){UpdateOption(this,"source")});
 }
 
+async function ChooseOption(optionList)
+{
+	let totalWeight = 0;
+	optionList.forEach(opt=>
+	{
+		totalWeight += opt.weight;
+		opt.maxRoll=totalWeight;
+	});
+	
+	let r = new Roll("1d"+totalWeight,{async:true});
+	await r.roll({async:true});
+	console.log(r);
+	console.log(optionList);
+	for (let i = 0; i < optionList.length; i++)
+	{
+		if (r.total <= optionList[i].maxRoll)
+			return optionList[i].text;
+	}
+
+	return "No result found.";
+}
+
 async function GenerateAllTreasure(html)
 {
-	UpdateAllWeights(html);
+	//UpdateAllWeights(html);
 	
 	var addToInventory = settings.insertInventory; // As of 2 June 22, this value isn't used yet.
 	var baseItemLevel = html.find('[name=level]')[0].value; // This value isn't saved in settings, so get from html
-	if (settings.useSelectedTokenLevel && macroActor !== null && macroActor !== undefined)
-		baseItemLevel=macroActor.data.data.details.level.value; // This should be redundant, but just in case;
 	var chanceToIncreaseLevel = settings.levelplus;
 	var chanceToDecreaseLevel = settings.levelminus;
 	
-	if (settings.clearInventory)
-		ClearTokenInventory();
-	
 	var numberOfTreasureRolls = settings.quantity;
-	console.log(numberOfTreasureRolls + " rolls to make.");
-	let items = [];
-	for (let i = 0; i < numberOfTreasureRolls; i++)
+	
+	for (let a = 0; a < actors.length; a++)
 	{
-		let iLevel = await GetItemLevel(baseItemLevel, chanceToIncreaseLevel, chanceToDecreaseLevel);
-		//console.log("iLevel data type: " + (typeof iLevel));
-		let ttype = await DrawTextFromTable("Treasure Type");
-		console.log("Draw from Treasure Type Table resulted in " + ttype);
-		if (ttype === "No Treasure")
-			{
-				LogToChat("Pull " + (i+1) + " of " + numberOfTreasureRolls + " resulted in no treasure.");
-				continue;
-			}
-		else if (ttype ==="Item")
+		if (settings.clearInventory)
+			ClearTokenInventory(actors[a]);
+		let tokenItemLevel = baseItemLevel;
+		if (settings.useSelectedTokenLevel)
+			tokenItemLevel = actors[a].data.data.details.level.value;
+		
+		console.log(numberOfTreasureRolls + " rolls to make.");
+		let items = [];
+		for (let i = 0; i < numberOfTreasureRolls; i++)
 		{
-			let itype = await DrawTextFromTable("Item Type");
-			LogToChat("Draw from Item Type Table resulted in " + itype);
-			if (itype === "consumable")
-			{
-				LogToChat("Pulling a consumable item");
-				let itemDrawn = await PullConsumableItem(iLevel);
-				items.push(...itemDrawn);
-			}
-			else if (itype === "permanent")
-			{
-				let ptype = await DrawTextFromTable("Permanent Type");
-				LogToChat("Draw from Permanent Type Table resulted in " + ptype);
-				if (ptype === "perm_armor" || ptype==="perm_armor_generic")
+			let iLevel = await GetItemLevel(tokenItemLevel, chanceToIncreaseLevel, chanceToDecreaseLevel);
+
+			let treasureTypeOptions = [{text:"No Treasure",weight:settings.noTreasure},
+									{text:"Item",weight:settings.item},
+									{text:"Money",weight:settings.money}];
+			let ttype = await ChooseOption(treasureTypeOptions);
+
+			console.log("Draw from Treasure Type Table resulted in " + ttype);
+			
+			if (ttype === "No Treasure")
 				{
-					LogToChat("Pulling armor");
-					let probabilities = 
-						{
-						generic:ptype==="perm_armor_generic"?100:0,
-						precious:settings.armormaterial,
-						potency:settings.armorpotency,
-						resilient:settings.armorresilient,
-						property:settings.armorproperty)
-						};
-					let itemDrawn = await PullArmor(iLevel, probabilities);
+					LogToChat("Pull " + (i+1) + " of " + numberOfTreasureRolls + " resulted in no treasure.");
+					continue;
+				}
+			else if (ttype ==="Item")
+			{
+				let itemTypeOptions = [{text:"consumable",weight:settings.consumable},
+					{text:"permanent",weight:settings.permanent}];
+				let itype = await ChooseOption(itemTypeOptions);
+				
+				LogToChat("Draw from Item Type Table resulted in " + itype);
+				if (itype === "consumable")
+				{
+					LogToChat("Pulling a consumable item");
+					let itemDrawn = await PullConsumableItem(iLevel);
 					items.push(...itemDrawn);
 				}
-				else if (ptype === "perm_weapon" || ptype==="perm_weapon_generic")
+				else if (itype === "permanent")
 				{
-					LogToChat("Pulling weapon");
-					let probabilities = 
-						{
-						generic:ptype==="perm_weapon_generic"?100:0,
-						precious:settings.weaponmaterial,
-						potency:settings.weaponpotency,
-						striking:settings.weaponstriking,
-						property:settings.weaponproperty)
-										};
-					let itemDrawn = await PullWeapon(iLevel, probabilities);
-					items.push(...itemDrawn);
-				}
-				else if (ptype === "perm_other")
-				{
-					LogToChat("Pulling permanent item");
-					let itemDrawn = await PullPermanentItem(iLevel);
-					items.push(...itemDrawn);
+					let permanentTypeOptions = [{text:"perm_other",weight:settings.perm_other},
+						{text:"perm_weapon",weight:settings.perm_weapon},
+						{text:"perm_weapon_generic",weight:settings.perm_weapon_generic},
+						{text:"perm_armor",weight:settings.perm_armor},
+						{text:"perm_armor_generic",weight:settings.perm_armor_generic}];
+					let ptype = await ChooseOption(permanentTypeOptions);
+										
+					LogToChat("Draw from Permanent Type Table resulted in " + ptype);
+					if (ptype === "perm_armor" || ptype==="perm_armor_generic")
+					{
+						LogToChat("Pulling armor");
+						let probabilities = 
+							{
+							generic:ptype==="perm_armor_generic"?100:0,
+							precious:settings.armormaterial,
+							potency:settings.armorpotency,
+							resilient:settings.armorresilient,
+							property:settings.armorproperty,
+							};
+						let itemDrawn = await PullArmor(iLevel, probabilities);
+						items.push(...itemDrawn);
+					}
+					else if (ptype === "perm_weapon" || ptype==="perm_weapon_generic")
+					{
+						LogToChat("Pulling weapon");
+						let probabilities = 
+							{
+							generic:ptype==="perm_weapon_generic"?100:0,
+							precious:settings.weaponmaterial,
+							potency:settings.weaponpotency,
+							striking:settings.weaponstriking,
+							property:settings.weaponproperty,
+							};
+						let itemDrawn = await PullWeapon(iLevel, probabilities);
+						items.push(...itemDrawn);
+					}
+					else if (ptype === "perm_other")
+					{
+						LogToChat("Pulling permanent item");
+						let itemDrawn = await PullPermanentItem(iLevel);
+						items.push(...itemDrawn);
+					}
+					else
+					{
+						LogToChat("Unexpected Permanent Type: " + ptype);
+					}					
 				}
 				else
 				{
-					LogToChat("Unexpected Permanent Type: " + ptype);
-				}					
+					LogToChat("Unexpected Item Type: " + itype);
+				}
+			}
+			else if (ttype ==="Money")
+			{
+				LogToChat("Pulling money");
+				let options = {
+						pcs:settings.pcCount,
+						flux:settings.moneyflux,
+						cashOnly:settings.cashOnly,
+						divisor:settings.moneyDivisor,
+					};
+					let itemsDrawn = await PullMoney(iLevel, options);
+					await items.push(...itemsDrawn);
+					
 			}
 			else
 			{
-				LogToChat("Unexpected Item Type: " + itype);
+				LogToChat("Unexpected Treasure Type: " + ttype);
 			}
 		}
-		else if (ttype ==="Money")
-		{
-			LogToChat("Pulling money");
-			let options = {
-					pcs:settings.pcCount,
-					flux:settings.moneyflux,
-					cashOnly:settings.cashOnly,
-					divisor:settings.moneyDivisor,
-				};
-				let itemsDrawn = await PullMoney(iLevel, options);
-				await items.push(...itemsDrawn);
-				
-		}
-		else
-		{
-			LogToChat("Unexpected Treasure Type: " + ttype);
-		}
+		
+		LogToChat(items);
 	}
-	
-	console.log(items);
 }
 
 async function GetItemLevel(baseLevel, chanceToIncrease, chanceToDecrease)
@@ -445,12 +487,16 @@ async function CalculateArmorWeight(rarity, source, armorType)
 
 function CalculateItemWeight(rarity, source, weaponType="", armorType="")
 {
-	let rweight = rarity===""?1:weightMappings.rarity[rarity];
-	let sweight = source===""?1:weightMappings.source[source];
-	let wweight = weaponType === ""?1:weightMappings.weapon[weaponType];
-	let aweight = armorType === ""?1:weightMappings.armor[armorType];
+	console.log(settings);
+	
+	let rweight = rarity===""?1:settings[rarity];
+	let sweight = (source===undefined||source==="")?1:settings.source[source];
+	let wweight = weaponType === ""?1:settings[weaponType];
+	let aweight = armorType === ""?1:settings[armorType];
 	let weight = rweight*sweight*wweight*aweight;
-	//console.log ("Rarity " + rweight + ", Source " + sweight + ", Weapon " + wweight + ", Armor " + aweight + ", Total: " + weight);
+	console.log ("Rarity " + rweight + ", Source " +source+":"+ sweight + ", Weapon " + wweight + ", Armor " + aweight + ", Total: " + weight);
+	if (isNaN(weight))
+		weight = 1;
 	return weight;
 }
 
@@ -461,7 +507,6 @@ async function PrepareItemsTable(level, filterCB)
 	let table=game.tables.find(t => t.name==="Items");
 		
 	let entries=docs.filter(filterCB(level));
-		
 	let weightedEntries = entries.map(e=>({img:e.img, collection:e.compendium.collection, resultId:e.id, text:e.data.name, rarity:e.rarity, source:e.data.data.source.value, weight:CalculateItemWeight(e.rarity, e.data.data.source.value),type:2,range:[1,1]}));
 
 	let filteredEntries = weightedEntries.filter(f=>f.weight!==0);
@@ -1344,15 +1389,19 @@ async function AddItemToCharacter(actor, docID, quantity, merge=true)
 	}
 }
 
-async function ClearTokenInventory()
+async function ClearTokenInventory(actor)
 {
-	if (macroActor === null || macroActor === undefined)
-		return;
-	await macroActor.deleteEmbeddedDocuments('Item', macroActor.items.filter(value=> (value.data.type === "weapon" || value.data.type === "treasure" || value.data.type === "armor" || value.data.type === "equipment" || value.data.type === "consumable" || value.data.type === "backpack")).map(i=>i.id));
+	await actor.deleteEmbeddedDocuments('Item', actor.items.filter(value=> (value.data.type === "weapon" || value.data.type === "treasure" || value.data.type === "armor" || value.data.type === "equipment" || value.data.type === "consumable" || value.data.type === "backpack")).map(i=>i.id));
 }
 
 function LogToChat(str, toChat=false, toConsole=true)
 {
+	if (toChat)
+	{
+		ChatMessage.create({
+			content: str,
+		});
+	}
 	if (toConsole)
 		console.log(str);
 }
@@ -1366,7 +1415,6 @@ async function UpdateAllWeights(html)
 	UpdateWeights(html, "Permanent Type");
 	UpdateWeights(html, "Item Type");
 	UpdateWeights(html, "Rarities",false);
-	UpdateOptions(html, "Options");
 	UpdateWeights(html, "Source",false);
 	
 	weightMappings.rarity.common=settings.common;
