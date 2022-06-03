@@ -6,23 +6,8 @@
 //TODO: Treasure isn't properly filtering by cost
 
 const thisMacro = this;
-let defaultLevel = 1;
 
 const selectedTokens = canvas.tokens.controlled;
-let actors = selectedTokens.flatMap((token) => token.actor ?? []);
-if (actors.length !== 0)
-{
-	actors.forEach(actor=> defaultLevel = Math.max(defaultLevel, actor.data.data.details.level.value));
-}
-
-//let macroActor = null;
-//if (token !== null && token !== undefined)
-//	macroActor = token.actor;
-//if (macroActor !== null && macroActor !== undefined)
-//{
-//	defaultLevel = macroActor.data.data.details.level.value;
-//}
-
 const CompendiumID = "pf2e.equipment-srd";
 const PlatinumID = "JuNPeK5Qm1w6wpb4";
 const GoldID = "B6B7tBWJSqOBz5zz";
@@ -162,17 +147,17 @@ const formContent = `
 <div style="flex-wrap:nowrap;display:flex;">
 <div style="height:750px;overflow:scroll;float:left;">
 
-<input class="treasureOptionCheck" type="checkbox" id="ignorePCTokens" name="ignorePCTokens"><label for="ignorePCTokens">Ignore PC Tokens</label><br>
+<input class="treasureOptionCheck ignorePCCheck" type="checkbox" id="ignorePCTokens" name="ignorePCTokens"><label for="ignorePCTokens">Ignore PC Tokens</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="clearInventory" name="clearInventory"><label for="clearInventory">Clear Selected Tokens Inventory?</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="insertInventory" name="insertInventory"><label for="insertInventory">Insert into Selected Tokens Inventory?</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="mergeInventory" name="mergeInventory"><label for="mergeInventory">Merge Inventory?</label><br><br>
-<input class="treasureOptionCheck" type="checkbox" id="useSelectedTokenLevel" name="useSelectedTokenLevel"><label for="useSelectedTokenLevel">Use Selected Token's Level?</label><br>
+<input class="treasureOptionCheck useSelectedTokenCheck" type="checkbox" id="useSelectedTokenLevel" name="useSelectedTokenLevel"><label for="useSelectedTokenLevel">Use Selected Token's Level?</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="showInChat" name="showInChat"><label for="showInChat">Show Result in Chatbox?</label><br><br>
 
 <div><label for="quantity">Rolls Per Token</label><input class="treasureOption" type="number" name="quantity" id="quantity" min="1" max="30"><br></div>
 
 <div id="treasurelvl">
-<label for="level">Treasure Level</label> <input type="number" name="level" id="level" min="-1" max="30" value="`+defaultLevel+`"><br>
+<label for="level">Treasure Level</label> <input type="number" name="level" id="level" min="-1" max="30" value="`+GetFilteredTokensMaxLevel()+`"><br>
 </div>
 
 <h3>Weights (Hard)</h3>
@@ -280,6 +265,11 @@ async function handleUpdates(html)
 	html.find('.treasureOptionCheck').on("change",function(){UpdateOption(this,"check")});
 	html.find('.treasureOption').on("change",function(){UpdateOption(this,"option")});
 	html.find('.treasureSource').on("change",function(){UpdateOption(this,"source")});
+	html.find('.ignorePCCheck').on("change",function(){UpdateTreasureLevel()});
+	html.find('.useSelectedTokenCheck').on("change",function(){ToggleTreasureLevel()});
+	
+	ToggleTreasureLevel();
+	UpdateTreasureLevel();
 }
 
 async function ChooseOption(optionList)
@@ -314,11 +304,13 @@ async function GenerateAllTreasure(html)
 	var chanceToDecreaseLevel = settings.levelminus;
 	
 	var numberOfTreasureRolls = settings.quantity;
-	
+	let actors = GetFilteredTokenActors();
 	for (let a = 0; a < actors.length; a++)
 	{
 		if (settings.clearInventory)
+		{	console.log(actors[a]);
 			ClearTokenInventory(actors[a]);
+		}
 		let tokenItemLevel = baseItemLevel;
 		if (settings.useSelectedTokenLevel)
 			tokenItemLevel = actors[a].data.data.details.level.value;
@@ -1599,7 +1591,50 @@ async function UpdateOption(selectObject, type="option", overrideValue=null)
 	//console.log(thisMacro.getFlag('world','PF2ETreasureGenSettings'));
 }
 
+function ToggleTreasureLevel()
+{
+	treasureLevelBox = document.getElementById('level');
+	treasureLevelBox.disabled=settings.useSelectedTokenLevel;
+}
+
+function UpdateTreasureLevel()
+{
+	treasureLevelBox = document.getElementById('level');
+	treasureLevelBox.value = GetFilteredTokensMaxLevel();
+}
+
 function GetSourceKey(source)
 {
 	return source.replace(/[^a-zA-Z1-9_$]/g, "")
+}
+
+function GetFilteredTokens()
+{
+	let finalTokens;
+	if (settings.ignorePCTokens)
+		finalTokens = selectedTokens.filter(t => t.actor.hasPlayerOwner===false)
+	else
+		finalTokens = selectedTokens;
+	
+	return finalTokens;
+}
+
+function GetFilteredTokenActors()
+{
+	let tokenList = GetFilteredTokens();
+	let actors = tokenList.flatMap((token) => token.actor ?? []);
+	
+	return actors;
+}
+
+function GetFilteredTokensMaxLevel()
+{
+	let defaultLevel = 1;
+	let actors = GetFilteredTokenActors();
+	if (actors.length !== 0)
+	{
+		actors.forEach(actor=> defaultLevel = Math.max(defaultLevel, actor.data.data.details.level.value));
+	}
+
+	return defaultLevel;
 }
