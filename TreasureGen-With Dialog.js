@@ -1,20 +1,12 @@
 //TODO: Name and Level of Weapons/Armor
 //TODO: Merge pulls before putting on token.
 //TODO: Actually display in chat if needed
-//TODO: Work on all selected tokens
 //TODO: Separate settings into different GUIs.
-//TODO: Use settings for all data instead of html values.
+//TODO: Treasure isn't properly filtering by cost
 
 const thisMacro = this;
-let defaultLevel = 1;
-let macroActor = null;
-if (token !== null && token !== undefined)
-	macroActor = token.actor;
-if (macroActor !== null && macroActor !== undefined)
-{
-	defaultLevel = macroActor.data.data.details.level.value;
-}
 
+const selectedTokens = canvas.tokens.controlled;
 const CompendiumID = "pf2e.equipment-srd";
 const PlatinumID = "JuNPeK5Qm1w6wpb4";
 const GoldID = "B6B7tBWJSqOBz5zz";
@@ -22,7 +14,7 @@ const SilverID = "5Ew82vBF9YfaiY9f";
 const CopperID = "lzJ8AVhRcbFul5fh";
 
 let settings = this.getFlag('world','PF2ETreasureGenSettings');
-if (settings === undefined)
+if (settings === undefined || settings===null)
 	settings = {
 	clearInventory:true,
 	insertInventory:true,
@@ -85,22 +77,22 @@ let runes = {
 };		
 
 const materialLevel	 = [
-{material: 'abysium' , source: 'Pathfinder Lost Omens: The Grand Bazaar', rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'adamantine', source: 'Pathfinder Core Rulebook', rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'coldIron', source: 'Pathfinder Core Rulebook', rarity: 'common', level:{low:2,standard:7,high:15},use:['weapon','armor','shield']},
-{material: 'darkwood', source: 'Pathfinder Core Rulebook', rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'djezet', source: 'Pathfinder Lost Omens: The Grand Bazaar', rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'dragonhide', source: 'Pathfinder Core Rulebook', rarity: 'uncommon', level:{standard:8,high:16},use:['armor','shield']},
-{material: 'grisantian-pelt', source: 'Pathfinder Lost Omens: Monsters of Myth', rarity: 'rare', level:{standard:12,high:18},use:['armor']},
-{material: 'inubrix', source: 'Pathfinder Lost Omens: The Grand Bazaar', rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'mithral', source: 'Pathfinder Core Rulebook', rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'noqual', source: 'Pathfinder Lost Omens: The Grand Bazaar', rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'orichalcum', source: 'Pathfinder Core Rulebook', rarity: 'rare', level:{high:17},use:['weapon','armor','shield']},
-{material: 'peachwood', source: 'Pathfinder Book of the Dead', rarity: 'uncommon', level:{standard:8,high:16},use:['weapon']},
-{material: 'siccatite', source: 'Pathfinder Lost Omens: The Grand Bazaar', rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'silver', source: 'Pathfinder Core Rulebook', rarity: 'common', level:{low:2,standard:7,high:15},use:['weapon','armor','shield']},
-{material: 'sovereignSteel', source: 'Pathfinder Lost Omens: Legends', rarity: 'rare', level:{standard:9,high:17},use:['weapon','armor','shield']},
-{material: 'warpglass', source: 'Pathfinder Lost Omens: Legends', rarity: 'rare', level:{high:17},use:['weapon']},
+{material: 'abysium' , source: GetSourceKey('Pathfinder Lost Omens: The Grand Bazaar'), rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'adamantine', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'coldIron', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'common', level:{low:2,standard:7,high:15},use:['weapon','armor','shield']},
+{material: 'darkwood', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'djezet', source: GetSourceKey('Pathfinder Lost Omens: The Grand Bazaar'), rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'dragonhide', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'uncommon', level:{standard:8,high:16},use:['armor','shield']},
+{material: 'grisantian-pelt', source: GetSourceKey('Pathfinder Lost Omens: Monsters of Myth'), rarity: 'rare', level:{standard:12,high:18},use:['armor']},
+{material: 'inubrix', source: GetSourceKey('Pathfinder Lost Omens: The Grand Bazaar'), rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'mithral', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'noqual', source: GetSourceKey('Pathfinder Lost Omens: The Grand Bazaar'), rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'orichalcum', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'rare', level:{high:17},use:['weapon','armor','shield']},
+{material: 'peachwood', source: GetSourceKey('Pathfinder Book of the Dead'), rarity: 'uncommon', level:{standard:8,high:16},use:['weapon']},
+{material: 'siccatite', source: GetSourceKey('Pathfinder Lost Omens: The Grand Bazaar'), rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'silver', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'common', level:{low:2,standard:7,high:15},use:['weapon','armor','shield']},
+{material: 'sovereignSteel', source: GetSourceKey('Pathfinder Lost Omens: Legends'), rarity: 'rare', level:{standard:9,high:17},use:['weapon','armor','shield']},
+{material: 'warpglass', source: GetSourceKey('Pathfinder Lost Omens: Legends'), rarity: 'rare', level:{high:17},use:['weapon']},
 ];
 
 const wealthByLevel = {
@@ -137,13 +129,14 @@ let srcarray = docs.map(i => i.data.data.source.value);
 srcarray = [...new Set(srcarray)];
 srcarray = srcarray.filter(x=>x!=="");
 srcarray.sort();
+let srcObjects = srcarray.map(i => ({display:i,key:GetSourceKey(i)}));
 
 let srcWeightings = "<table><caption>Source Weightings (Multiplicative)</caption>";
 
-srcarray.forEach((item)=>{
+srcObjects.forEach((item)=>{
 	if (item === "")
 		return;
-	srcWeightings += '<tr><td width="75%"><label for="' + item + '">' + item + '</label></td><td width="25%"><input class="treasureSource" type="number" name="' + item + '" id="' + item + '" min="0" max="100"></td></tr>'
+	srcWeightings += '<tr><td width="75%"><label for="' + item.key + '">' + item.display + '</label></td><td width="25%"><input class="treasureSource" type="number" name="' + item.key + '" id="' + item.key + '" min="0" max="100"></td></tr>'
 });
 srcWeightings += "</table>";
 
@@ -153,17 +146,17 @@ const formContent = `
 <div style="flex-wrap:nowrap;display:flex;">
 <div style="height:750px;overflow:scroll;float:left;">
 
-<input class="treasureOptionCheck" type="checkbox" id="ignorePCTokens" name="ignorePCTokens"><label for="ignorePCTokens">Ignore PC Tokens</label><br>
+<input class="treasureOptionCheck ignorePCCheck" type="checkbox" id="ignorePCTokens" name="ignorePCTokens"><label for="ignorePCTokens">Ignore PC Tokens</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="clearInventory" name="clearInventory"><label for="clearInventory">Clear Selected Tokens Inventory?</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="insertInventory" name="insertInventory"><label for="insertInventory">Insert into Selected Tokens Inventory?</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="mergeInventory" name="mergeInventory"><label for="mergeInventory">Merge Inventory?</label><br><br>
-<input class="treasureOptionCheck" type="checkbox" id="useSelectedTokenLevel" name="useSelectedTokenLevel"><label for="useSelectedTokenLevel">Use Selected Token's Level?</label><br>
+<input class="treasureOptionCheck useSelectedTokenCheck" type="checkbox" id="useSelectedTokenLevel" name="useSelectedTokenLevel"><label for="useSelectedTokenLevel">Use Selected Token's Level?</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="showInChat" name="showInChat"><label for="showInChat">Show Result in Chatbox?</label><br><br>
 
 <div><label for="quantity">Rolls Per Token</label><input class="treasureOption" type="number" name="quantity" id="quantity" min="1" max="30"><br></div>
 
 <div id="treasurelvl">
-<label for="level">Treasure Level</label> <input class="treasureOption"  type="number" name="level" id="level" min="-1" max="30" value="`+defaultLevel+`"><br>
+<label for="level">Treasure Level</label> <input type="number" name="level" id="level" min="-1" max="30" value="`+GetFilteredTokensMaxLevel()+`"><br>
 </div>
 
 <h3>Weights (Hard)</h3>
@@ -175,9 +168,9 @@ const formContent = `
 <td><label for="levelminus">% Level Down</label> <input class="treasureOption"  type="number" name="levelminus" id="levelminus" min="0" max="100"></td></tr></table></div>
 
 <div style="display:flex">
-<table><caption>Type of Treasure</caption><tr><td width="33%"><label for="No Treasure">No Treasure</label><input class="treasureOption"  type="number" name="No Treasure" id="No Treasure" min="0" max="100"></td>
-<td width="33%"><label for="Money">Money</label><input class="treasureOption"  type="number" name="Money" id="Money" min="0" max="100"></td>
-<td width="33%"><label for="Item">Item</label><input class="treasureOption"  type="number" name="Item" id="Item" min="0" max="100"></td></tr></table></div>
+<table><caption>Type of Treasure</caption><tr><td width="33%"><label for="noTreasure">No Treasure</label><input class="treasureOption"  type="number" name="noTreasure" id="noTreasure" min="0" max="100"></td>
+<td width="33%"><label for="money">Money</label><input class="treasureOption"  type="number" name="money" id="money" min="0" max="100"></td>
+<td width="33%"><label for="item">Item</label><input class="treasureOption"  type="number" name="item" id="item" min="0" max="100"></td></tr></table></div>
 
 <div style="display:flex">
 <table><caption>Item Type</caption><tr><td width="25%"><label for="consumable">Consumable</label><input class="treasureOption"  type="number" name="consumable" id="consumable" min="0" max="100"></td>
@@ -271,114 +264,165 @@ async function handleUpdates(html)
 	html.find('.treasureOptionCheck').on("change",function(){UpdateOption(this,"check")});
 	html.find('.treasureOption').on("change",function(){UpdateOption(this,"option")});
 	html.find('.treasureSource').on("change",function(){UpdateOption(this,"source")});
+	html.find('.ignorePCCheck').on("change",function(){UpdateTreasureLevel()});
+	html.find('.useSelectedTokenCheck').on("change",function(){ToggleTreasureLevel()});
+	
+	ToggleTreasureLevel();
+	UpdateTreasureLevel();
+}
+
+async function ChooseOption(optionList)
+{
+	let totalWeight = 0;
+	optionList.forEach(opt=>
+	{
+		totalWeight += opt.weight;
+		opt.maxRoll=totalWeight;
+	});
+	
+	let r = new Roll("1d"+totalWeight,{async:true});
+	await r.roll({async:true});
+	console.log(r);
+	console.log(optionList);
+	for (let i = 0; i < optionList.length; i++)
+	{
+		if (r.total <= optionList[i].maxRoll)
+			return optionList[i].text;
+	}
+
+	return "No result found.";
 }
 
 async function GenerateAllTreasure(html)
 {
-	UpdateAllWeights(html);
+	//UpdateAllWeights(html);
 	
-	var clearInventory = html.find('[name=clearInventory]')[0].checked;
-	var addToInventory = html.find('[name=insertInventory]')[0].checked;
-	var baseItemLevel = html.find('[name=level]')[0].value;
-	if (html.find('[name=useSelectedTokenLevel]')[0].checked && macroActor !== null && macroActor !== undefined)
-		baseItemLevel=macroActor.data.data.details.level.value; // This should be redundant, but just in case;
-	var chanceToIncreaseLevel = html.find('[name=levelplus]')[0].value;
-	var chanceToDecreaseLevel = html.find('[name=levelminus]')[0].value;
+	var addToInventory = settings.insertInventory; // As of 2 June 22, this value isn't used yet.
+	var baseItemLevel = html.find('[name=level]')[0].value; // This value isn't saved in settings, so get from html
+	var chanceToIncreaseLevel = settings.levelplus;
+	var chanceToDecreaseLevel = settings.levelminus;
 	
-	if (clearInventory)
-		ClearTokenInventory();
-	
-	var numberOfTreasureRolls = html.find('[name=quantity]')[0].value;
-	console.log(numberOfTreasureRolls + " rolls to make.");
-	let items = [];
-	for (let i = 0; i < numberOfTreasureRolls; i++)
+	var numberOfTreasureRolls = settings.quantity;
+	let actors = GetFilteredTokenActors();
+	for (let a = 0; a < actors.length; a++)
 	{
-		let iLevel = await GetItemLevel(baseItemLevel, chanceToIncreaseLevel, chanceToDecreaseLevel);
-		//console.log("iLevel data type: " + (typeof iLevel));
-		let ttype = await DrawTextFromTable("Treasure Type");
-		console.log("Draw from Treasure Type Table resulted in " + ttype);
-		if (ttype === "No Treasure")
-			{
-				LogToChat("Pull " + (i+1) + " of " + numberOfTreasureRolls + " resulted in no treasure.");
-				continue;
-			}
-		else if (ttype ==="Item")
+		if (settings.clearInventory)
+		{	console.log(actors[a]);
+			ClearTokenInventory(actors[a]);
+		}
+		let tokenItemLevel = baseItemLevel;
+		if (settings.useSelectedTokenLevel)
+			tokenItemLevel = actors[a].data.data.details.level.value;
+		
+		console.log(numberOfTreasureRolls + " rolls to make.");
+		let items = [];
+		for (let i = 0; i < numberOfTreasureRolls; i++)
 		{
-			let itype = await DrawTextFromTable("Item Type");
-			LogToChat("Draw from Item Type Table resulted in " + itype);
-			if (itype === "consumable")
-			{
-				LogToChat("Pulling a consumable item");
-				let itemDrawn = await PullConsumableItem(iLevel);
-				items.push(...itemDrawn);
-			}
-			else if (itype === "permanent")
-			{
-				let ptype = await DrawTextFromTable("Permanent Type");
-				LogToChat("Draw from Permanent Type Table resulted in " + ptype);
-				if (ptype === "perm_armor" || ptype==="perm_armor_generic")
+			let iLevel = await GetItemLevel(tokenItemLevel, chanceToIncreaseLevel, chanceToDecreaseLevel);
+
+			let treasureTypeOptions = [{text:"No Treasure",weight:settings.noTreasure},
+									{text:"Item",weight:settings.item},
+									{text:"Money",weight:settings.money}];
+			let ttype = await ChooseOption(treasureTypeOptions);
+
+			console.log("Draw from Treasure Type Table resulted in " + ttype);
+			
+			if (ttype === "No Treasure")
 				{
-					LogToChat("Pulling armor");
-										let probabilities = {generic:ptype==="perm_armor_generic"?100:0,
-										precious:parseInt(html.find('[name=armormaterial]')[0].value),
-										potency:parseInt(html.find('[name=armorpotency]')[0].value),
-										striking:parseInt(html.find('[name=armorresilient]')[0].value),
-										property:parseInt(html.find('[name=armorproperty]')[0].value)
-										};
-					let itemDrawn = await PullArmor(iLevel, probabilities);
+					LogToChat("Pull " + (i+1) + " of " + numberOfTreasureRolls + " resulted in no treasure.");
+					continue;
+				}
+			else if (ttype ==="Item")
+			{
+				let itemTypeOptions = [{text:"consumable",weight:settings.consumable},
+					{text:"permanent",weight:settings.permanent}];
+				let itype = await ChooseOption(itemTypeOptions);
+				
+				LogToChat("Draw from Item Type Table resulted in " + itype);
+				if (itype === "consumable")
+				{
+					LogToChat("Pulling a consumable item");
+					let itemDrawn = await PullConsumableItem(iLevel);
 					items.push(...itemDrawn);
 				}
-				else if (ptype === "perm_weapon" || ptype==="perm_weapon_generic")
+				else if (itype === "permanent")
 				{
-					LogToChat("Pulling weapon");
-					let probabilities = {generic:ptype==="perm_weapon_generic"?100:0,
-										precious:parseInt(html.find('[name=weaponmaterial]')[0].value),
-										potency:parseInt(html.find('[name=weaponpotency]')[0].value),
-										striking:parseInt(html.find('[name=weaponstriking]')[0].value),
-										property:parseInt(html.find('[name=weaponproperty]')[0].value)
-										};
-					let itemDrawn = await PullWeapon(iLevel, probabilities);
-					items.push(...itemDrawn);
-				}
-				else if (ptype === "perm_other")
-				{
-					LogToChat("Pulling permanent item");
-					let itemDrawn = await PullPermanentItem(iLevel);
-					items.push(...itemDrawn);
+					let permanentTypeOptions = [{text:"perm_other",weight:settings.perm_other},
+						{text:"perm_weapon",weight:settings.perm_weapon},
+						{text:"perm_weapon_generic",weight:settings.perm_weapon_generic},
+						{text:"perm_armor",weight:settings.perm_armor},
+						{text:"perm_armor_generic",weight:settings.perm_armor_generic}];
+					let ptype = await ChooseOption(permanentTypeOptions);
+										
+					LogToChat("Draw from Permanent Type Table resulted in " + ptype);
+					if (ptype === "perm_armor" || ptype==="perm_armor_generic")
+					{
+						LogToChat("Pulling armor");
+						let probabilities = 
+							{
+							generic:ptype==="perm_armor_generic"?100:0,
+							precious:settings.armormaterial,
+							potency:settings.armorpotency,
+							resilient:settings.armorresilient,
+							property:settings.armorproperty,
+							};
+						let itemDrawn = await PullArmor(iLevel, probabilities);
+						items.push(...itemDrawn);
+					}
+					else if (ptype === "perm_weapon" || ptype==="perm_weapon_generic")
+					{
+						LogToChat("Pulling weapon");
+						let probabilities = 
+							{
+							generic:ptype==="perm_weapon_generic"?100:0,
+							precious:settings.weaponmaterial,
+							potency:settings.weaponpotency,
+							striking:settings.weaponstriking,
+							property:settings.weaponproperty,
+							};
+						let itemDrawn = await PullWeapon(iLevel, probabilities);
+						items.push(...itemDrawn);
+					}
+					else if (ptype === "perm_other")
+					{
+						LogToChat("Pulling permanent item");
+						let itemDrawn = await PullPermanentItem(iLevel);
+						items.push(...itemDrawn);
+					}
+					else
+					{
+						LogToChat("Unexpected Permanent Type: " + ptype);
+					}					
 				}
 				else
 				{
-					LogToChat("Unexpected Permanent Type: " + ptype);
-				}					
+					LogToChat("Unexpected Item Type: " + itype);
+				}
+			}
+			else if (ttype ==="Money")
+			{
+				LogToChat("Pulling money");
+				let options = {
+						pcs:settings.pcCount,
+						flux:settings.moneyflux,
+						cashOnly:settings.cashOnly,
+						divisor:settings.moneyDivisor,
+					};
+					let itemsDrawn = await PullMoney(iLevel, options);
+					await items.push(...itemsDrawn);
+					
 			}
 			else
 			{
-				LogToChat("Unexpected Item Type: " + itype);
+				LogToChat("Unexpected Treasure Type: " + ttype);
 			}
 		}
-		else if (ttype ==="Money")
-		{
-			LogToChat("Pulling money");
-			let options = {
-					pcs:parseInt(html.find('[name=pcCount]')[0].value),
-					flux:parseInt(html.find('[name=moneyflux]')[0].value),
-					cashOnly:parseInt(html.find('[name=cashOnly]')[0].value),
-					divisor:parseInt(html.find('[name=moneyDivisor]')[0].value),
-				};
-				let itemsDrawn = await PullMoney(iLevel, options);
-				await items.push(...itemsDrawn);
-				
-		}
-		else
-		{
-			LogToChat("Unexpected Treasure Type: " + ttype);
-		}
+		
+		LogToChat(items);
 	}
-	
-	console.log(items);
 }
 
-async function GetItemLevel(baseLevel,chanceToIncrease, chanceToDecrease)
+async function GetItemLevel(baseLevel, chanceToIncrease, chanceToDecrease)
 {
 	let finalLevel = baseLevel;
 	let levelText = await DrawTextFromTable("Treasure Level");
@@ -435,12 +479,16 @@ async function CalculateArmorWeight(rarity, source, armorType)
 
 function CalculateItemWeight(rarity, source, weaponType="", armorType="")
 {
-	let rweight = rarity===""?1:weightMappings.rarity[rarity];
-	let sweight = source===""?1:weightMappings.source[source];
-	let wweight = weaponType === ""?1:weightMappings.weapon[weaponType];
-	let aweight = armorType === ""?1:weightMappings.armor[armorType];
+	//console.log(settings);
+	
+	let rweight = rarity===""?1:settings[rarity];
+	let sweight = (source===undefined||source==="")?1:settings.source[GetSourceKey(source)];
+	let wweight = weaponType === ""?1:settings[weaponType];
+	let aweight = armorType === ""?1:settings[armorType];
 	let weight = rweight*sweight*wweight*aweight;
-	//console.log ("Rarity " + rweight + ", Source " + sweight + ", Weapon " + wweight + ", Armor " + aweight + ", Total: " + weight);
+	//console.log ("Rarity " + rweight + ", Source " +source+":"+ sweight + ", Weapon " + wweight + ", Armor " + aweight + ", Total: " + weight);
+	if (isNaN(weight))
+		weight = 1;
 	return weight;
 }
 
@@ -451,7 +499,6 @@ async function PrepareItemsTable(level, filterCB)
 	let table=game.tables.find(t => t.name==="Items");
 		
 	let entries=docs.filter(filterCB(level));
-		
 	let weightedEntries = entries.map(e=>({img:e.img, collection:e.compendium.collection, resultId:e.id, text:e.data.name, rarity:e.rarity, source:e.data.data.source.value, weight:CalculateItemWeight(e.rarity, e.data.data.source.value),type:2,range:[1,1]}));
 
 	let filteredEntries = weightedEntries.filter(f=>f.weight!==0);
@@ -1172,9 +1219,7 @@ async function GetCashTotal(totalValue)
 		let r = new Roll("1d"+(maxPlatinum+1)+"-1",{});
 		r=r.roll({async:false});
 		platinum = r.total;
-		//console.log("Allocating " + platinum + " out of " + maxPlatinum + " platinum.");
 		remainingWorth -= (platinum * 1000);
-		//console.log("Remaining Worth (in copper) : " + remainingWorth);	
 		if (platinum > 0)
 		{
 			let pp = await GetCompendiumObject(PlatinumID);
@@ -1189,9 +1234,7 @@ async function GetCashTotal(totalValue)
 		let r = new Roll("1d"+(maxGold+1)+"-1",{});
 		r=r.roll({async:false});
 		gold = r.total;
-		//console.log("Allocating " + gold + " out of " + maxGold + " gold.");
 		remainingWorth -= (gold * 100);
-		//console.log("Remaining Worth (in copper) : " + remainingWorth);		
 		if (gold > 0)
 		{
 			let gp = await GetCompendiumObject(GoldID);
@@ -1206,9 +1249,7 @@ async function GetCashTotal(totalValue)
 		let r = new Roll("1d"+(maxSilver+1)+"-1",{});
 		r=r.roll({async:false});
 		silver = r.total;
-		//console.log("Allocating " + silver + " out of " + maxSilver + " silver.");
 		remainingWorth -= (silver * 10);
-		//console.log("Remaining Worth (in copper) : " + remainingWorth);	
 		if (silver > 0)
 		{
 			let sp = await GetCompendiumObject(SilverID);
@@ -1297,7 +1338,7 @@ async function GetCompendiumObject(docID)
 
 async function GetCompendiumObjectFromDraw(drawResult)
 {
-	return GetCompendiumObject(drawResult.results[0].result.data.resultId);
+	return GetCompendiumObject(drawResult.results[0].data.resultId);
 }
 
 function ItemExistsOnCharacter(actor, docID)
@@ -1314,35 +1355,32 @@ async function AddItemToCharacter(actor, docID, quantity, merge=true)
 	
 	if (merge && existingItems.length > 0)
 	{
-		//console.log("Attempting to combine stacks.");
 		let itemObject = existingItems[0];
-		//console.log("starts with " + itemObject.quantity);
 		let newQuantity = itemObject.quantity + quantity;
-		//console.log("added " + quantity + ", so now there are " + newQuantity);
 		await actor.updateEmbeddedDocuments('Item',[{_id:itemObject.id, 'data.quantity':newQuantity}]);
 	}
 	else
 	{
-		//console.log("Attempting to insert stack of " + quantity);
 		let itemToMove = await pack.getDocument(docID);
-		//console.log(itemToMove);
 		let itemObject = await itemToMove.toObject();
-		//console.log(itemObject);
 		itemObject.data.quantity = quantity;
-		//console.log(itemObject);
 		await actor.createEmbeddedDocuments('Item',[itemObject]);
 	}
 }
 
-async function ClearTokenInventory()
+async function ClearTokenInventory(actor)
 {
-	if (macroActor === null || macroActor === undefined)
-		return;
-	await macroActor.deleteEmbeddedDocuments('Item', macroActor.items.filter(value=> (value.data.type === "weapon" || value.data.type === "treasure" || value.data.type === "armor" || value.data.type === "equipment" || value.data.type === "consumable" || value.data.type === "backpack")).map(i=>i.id));
+	await actor.deleteEmbeddedDocuments('Item', actor.items.filter(value=> (value.data.type === "weapon" || value.data.type === "treasure" || value.data.type === "armor" || value.data.type === "equipment" || value.data.type === "consumable" || value.data.type === "backpack")).map(i=>i.id));
 }
 
 function LogToChat(str, toChat=false, toConsole=true)
 {
+	if (toChat)
+	{
+		ChatMessage.create({
+			content: str,
+		});
+	}
 	if (toConsole)
 		console.log(str);
 }
@@ -1356,149 +1394,45 @@ async function UpdateAllWeights(html)
 	UpdateWeights(html, "Permanent Type");
 	UpdateWeights(html, "Item Type");
 	UpdateWeights(html, "Rarities",false);
-	UpdateOptions(html, "Options");
 	UpdateWeights(html, "Source",false);
 	
-	weightMappings.rarity.common=html.find('[name=common]')[0].value;
-	weightMappings.rarity.uncommon=html.find('[name=uncommon]')[0].value;
-	weightMappings.rarity.rare=html.find('[name=rare]')[0].value;
-	weightMappings.rarity.unique=html.find('[name=unique]')[0].value;
+	weightMappings.rarity.common=settings.common;
+	weightMappings.rarity.uncommon=settings.uncommon;
+	weightMappings.rarity.rare=settings.rare;
+	weightMappings.rarity.unique=settings.unique;
 	
-	weightMappings.weapon.simple=html.find('[name=simple]')[0].value;
-	weightMappings.weapon.martial=html.find('[name=martial]')[0].value;
-	weightMappings.weapon.advanced=html.find('[name=advanced]')[0].value;
+	weightMappings.weapon.simple=settings.simple;
+	weightMappings.weapon.martial=settings.martial;
+	weightMappings.weapon.advanced=settings.advanced;
 	
-	weightMappings.armor.light=html.find('[name=light]')[0].value;
-	weightMappings.armor.medium=html.find('[name=medium]')[0].value;
-	weightMappings.armor.heavy=html.find('[name=heavy]')[0].value;
+	weightMappings.armor.light=settings.light;
+	weightMappings.armor.medium=settings.medium;
+	weightMappings.armor.heavy=settings.heavy;
 	
 	console.log(weightMappings);
 }
 
-/*async function GetAllDefaultValues(html,srcArray)
-{
-	GetDefaultValues(html, "Treasure Type");
-	GetDefaultValues(html, "Armor Type");
-	GetDefaultValues(html, "Weapon Complexity");
-	GetDefaultValues(html, "Treasure Level");
-	GetDefaultValues(html, "Rarities");
-	GetDefaultValues(html, "Permanent Type");
-	GetDefaultValues(html, "Item Type");
-	GetDefaultOptions(html, "Options");
-	GetDefaultSources(html, "Source", srcArray);
-	if (macroActor === undefined || macroActor === null)
-	{
-		html.find('[name=clearInventory]')[0].disabled=true;
-		html.find('[name=insertInventory]')[0].disabled=true;
-		html.find('[name=useSelectedTokenLevel]')[0].disabled=true;
-	}	
-}
-
-async function GetDefaultSources(html, tableName, srcArray)
-{
-	let table = game.tables.find(t=>t.name===tableName);
-	//console.log(table);
-	let weightArray = table.data.results.map(x=>({id:x.data._id,name:x.data.text,weight:x.data.weight}));
-	//console.log(weightArray);
-	weightArray.forEach(element=>html.find('[name="'+element.name+'"]')[0].setAttribute("value",element.weight===undefined?0:element.weight));
-	if (weightArray.length == 0)
-		{
-		srcArray.forEach(element=>table.createEmbeddedDocuments('TableResult',[{type:0,text:element, weight:1,range:[1,1]}]));		
-		}
-	else
-	{
-		srcArray.forEach(element=>{
-			let temp = weightArray.filter(wa=>wa.name===element);
-			if(temp.length===0)
-			{
-				table.createEmbeddedDocuments('TableResult',[{type: 0,text:element, weight:1,range:[1,1]}]);
-			}
-		});
-	}
-}
-
-async function GetDefaultOptions(html, tableName)
-{
-	let table = game.tables.find(t=>t.name===tableName);
-	let weightArray = table.data.results.map(x=>({id:x.data._id,name:x.data.text,weight:x.data.weight}));
-	weightArray.forEach(element=>{
-		if (element.name==="clearInventory" || element.name==="insertInventory" || element.name==="showInChat"|| element.name==="useSelectedTokenLevel")
-			html.find('[name="'+element.name+'"]')[0].checked = element.weight===1?true:false;
-		else
-			html.find('[name="'+element.name+'"]')[0].setAttribute("value",element.weight===undefined?0:element.weight);
-		});	
-}
-
-async function GetDefaultValues(html, tableName)
-{
-	let table = game.tables.find(t=>t.name===tableName);
-	let weightArray = table.data.results.map(x=>({id:x.data._id,name:x.data.text,weight:x.data.weight}));
-	weightArray.forEach(element=>html.find('[name="'+element.name+'"]')[0].setAttribute("value",element.weight===undefined?0:element.weight));
-}
-
-async function UpdateOptions(html, tableName)
-{
-	let table = game.tables.find(t=>t.name===tableName);
-	let weightArray = table.data.results.map(x=>({id:x.data._id,name:x.data.text,weight:x.data.weight}));
-	weightArray.forEach(element=>{
-		if (element.name==="clearInventory" || element.name==="insertInventory" || element.name==="showInChat" || element.name==="useSelectedTokenLevel")
-			element.weight=html.find('[name="'+element.name+'"]')[0].checked?1:0;
-		else
-		{
-			element.weight=parseInt(html.find('[name="'+element.name+'"]')[0].value);
-		}
-	});
-	await Promise.all(weightArray.map(async (weighting) => { await table.updateEmbeddedDocuments('TableResult',[{_id:weighting.id,weight:weighting.weight}])}));
-}
-*/
-async function UpdateWeights(html, tableName, normalize=true)
-{
-	let totalWeight = 0;
-	let table = game.tables.find(t=>t.name===tableName);
-	let weightArray = table.data.results.map(x=>({id:x.data._id,name:x.data.text,weight:x.data.weight}));
-	if (tableName === "Source")
-	{
-		weightArray.forEach(element=>weightMappings.source[element.name]=element.weight);
-	}
-	
-	weightArray.forEach(element=>element.weight=parseInt(html.find('[name="'+element.name+'"]')[0].value));
-	weightArray.forEach(element=>totalWeight+=element.weight);
-	await Promise.all(weightArray.map(async (weighting) => { await table.updateEmbeddedDocuments('TableResult',[{_id:weighting.id,weight:weighting.weight}])}));
-	
-	if (normalize)
-	{
-		table.normalize();
-	}
-}
-
 function GetOption(selectObject, isSource = false)
 {
-	//console.log("Getting option.  selectObject is ");
-	//console.log(selectObject);
 	var optionName = selectObject.id;
-	//console.log(optionName);
 	if (isSource)
 	{
 		if (settings.source.hasOwnProperty(optionName))
 		{
-			//console.log("source " + optionName + " has value " + settings.source[optionName]);
 			return settings.source[optionName];
 		}
 		else
 		{
-			//console.log("Couldn't find property with source name, updating to 1");
-			UpdateOption(selectObject, true, 1);
+			UpdateOption(selectObject, "source", 1);
 			return 1;
 		}
 	}
 	if (settings.hasOwnProperty(optionName))
 	{
-		//console.log("option " + optionName + " has value " + settings[optionName]);
 		return settings[optionName];
 	}
 	else
 	{
-		//console.log("Couldn't find property with option "+optionName+", updating to 1");
 		UpdateOption(selectObject,false,1);
 		return 1;
 	}
@@ -1506,8 +1440,6 @@ function GetOption(selectObject, isSource = false)
 
 async function UpdateOption(selectObject, type="option", overrideValue=null)
 {
-	//console.log("Entered UpdateOption");
-	//console.log(selectObject);
 	var value;
 	if (type==="option" || type==="source")
 		value = parseInt(selectObject.value);
@@ -1521,21 +1453,60 @@ async function UpdateOption(selectObject, type="option", overrideValue=null)
 	
 	if (type==="source")
 	{
-		//console.log(settings);
-		//console.log("Setting source " + optionName + " to " + value);
 		settings.source[optionName] = value;
-		//console.log(settings);
 	}
 	else
 	{
-		//console.log(settings);
-		//console.log("Setting option " + optionName + " to " + value);
 		settings[optionName] = value;
-		//console.log(settings);
 	}
 	
 	let temp = await thisMacro.setFlag('world','PF2ETreasureGenSettings',settings);
-	 
-	//console.log("Settting flag: ");
-	//console.log(thisMacro.getFlag('world','PF2ETreasureGenSettings'));
+}
+
+function ToggleTreasureLevel()
+{
+	treasureLevelBox = document.getElementById('level');
+	treasureLevelBox.disabled=settings.useSelectedTokenLevel;
+}
+
+function UpdateTreasureLevel()
+{
+	treasureLevelBox = document.getElementById('level');
+	treasureLevelBox.value = GetFilteredTokensMaxLevel();
+}
+
+function GetSourceKey(source)
+{
+	return source.replace(/[^a-zA-Z1-9_$]/g, "")
+}
+
+function GetFilteredTokens()
+{
+	let finalTokens;
+	if (settings.ignorePCTokens)
+		finalTokens = selectedTokens.filter(t => t.actor.hasPlayerOwner===false)
+	else
+		finalTokens = selectedTokens;
+	
+	return finalTokens;
+}
+
+function GetFilteredTokenActors()
+{
+	let tokenList = GetFilteredTokens();
+	let actors = tokenList.flatMap((token) => token.actor ?? []);
+	
+	return actors;
+}
+
+function GetFilteredTokensMaxLevel()
+{
+	let defaultLevel = 1;
+	let actors = GetFilteredTokenActors();
+	if (actors.length !== 0)
+	{
+		actors.forEach(actor=> defaultLevel = Math.max(defaultLevel, actor.data.data.details.level.value));
+	}
+
+	return defaultLevel;
 }
