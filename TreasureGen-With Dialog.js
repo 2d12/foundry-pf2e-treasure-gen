@@ -30,7 +30,7 @@ const SilverID = "5Ew82vBF9YfaiY9f";
 const CopperID = "lzJ8AVhRcbFul5fh";
 
 let settings = this.getFlag('world','PF2ETreasureGenSettings');
-if (settings === undefined)
+if (settings === undefined || settings===null)
 	settings = {
 	clearInventory:true,
 	insertInventory:true,
@@ -93,22 +93,22 @@ let runes = {
 };		
 
 const materialLevel	 = [
-{material: 'abysium' , source: 'Pathfinder Lost Omens: The Grand Bazaar', rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'adamantine', source: 'Pathfinder Core Rulebook', rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'coldIron', source: 'Pathfinder Core Rulebook', rarity: 'common', level:{low:2,standard:7,high:15},use:['weapon','armor','shield']},
-{material: 'darkwood', source: 'Pathfinder Core Rulebook', rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'djezet', source: 'Pathfinder Lost Omens: The Grand Bazaar', rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'dragonhide', source: 'Pathfinder Core Rulebook', rarity: 'uncommon', level:{standard:8,high:16},use:['armor','shield']},
-{material: 'grisantian-pelt', source: 'Pathfinder Lost Omens: Monsters of Myth', rarity: 'rare', level:{standard:12,high:18},use:['armor']},
-{material: 'inubrix', source: 'Pathfinder Lost Omens: The Grand Bazaar', rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'mithral', source: 'Pathfinder Core Rulebook', rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'noqual', source: 'Pathfinder Lost Omens: The Grand Bazaar', rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'orichalcum', source: 'Pathfinder Core Rulebook', rarity: 'rare', level:{high:17},use:['weapon','armor','shield']},
-{material: 'peachwood', source: 'Pathfinder Book of the Dead', rarity: 'uncommon', level:{standard:8,high:16},use:['weapon']},
-{material: 'siccatite', source: 'Pathfinder Lost Omens: The Grand Bazaar', rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
-{material: 'silver', source: 'Pathfinder Core Rulebook', rarity: 'common', level:{low:2,standard:7,high:15},use:['weapon','armor','shield']},
-{material: 'sovereignSteel', source: 'Pathfinder Lost Omens: Legends', rarity: 'rare', level:{standard:9,high:17},use:['weapon','armor','shield']},
-{material: 'warpglass', source: 'Pathfinder Lost Omens: Legends', rarity: 'rare', level:{high:17},use:['weapon']},
+{material: 'abysium' , source: GetSourceKey('Pathfinder Lost Omens: The Grand Bazaar'), rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'adamantine', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'coldIron', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'common', level:{low:2,standard:7,high:15},use:['weapon','armor','shield']},
+{material: 'darkwood', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'djezet', source: GetSourceKey('Pathfinder Lost Omens: The Grand Bazaar'), rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'dragonhide', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'uncommon', level:{standard:8,high:16},use:['armor','shield']},
+{material: 'grisantian-pelt', source: GetSourceKey('Pathfinder Lost Omens: Monsters of Myth'), rarity: 'rare', level:{standard:12,high:18},use:['armor']},
+{material: 'inubrix', source: GetSourceKey('Pathfinder Lost Omens: The Grand Bazaar'), rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'mithral', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'uncommon', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'noqual', source: GetSourceKey('Pathfinder Lost Omens: The Grand Bazaar'), rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'orichalcum', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'rare', level:{high:17},use:['weapon','armor','shield']},
+{material: 'peachwood', source: GetSourceKey('Pathfinder Book of the Dead'), rarity: 'uncommon', level:{standard:8,high:16},use:['weapon']},
+{material: 'siccatite', source: GetSourceKey('Pathfinder Lost Omens: The Grand Bazaar'), rarity: 'rare', level:{standard:8,high:16},use:['weapon','armor','shield']},
+{material: 'silver', source: GetSourceKey('Pathfinder Core Rulebook'), rarity: 'common', level:{low:2,standard:7,high:15},use:['weapon','armor','shield']},
+{material: 'sovereignSteel', source: GetSourceKey('Pathfinder Lost Omens: Legends'), rarity: 'rare', level:{standard:9,high:17},use:['weapon','armor','shield']},
+{material: 'warpglass', source: GetSourceKey('Pathfinder Lost Omens: Legends'), rarity: 'rare', level:{high:17},use:['weapon']},
 ];
 
 const wealthByLevel = {
@@ -145,13 +145,14 @@ let srcarray = docs.map(i => i.data.data.source.value);
 srcarray = [...new Set(srcarray)];
 srcarray = srcarray.filter(x=>x!=="");
 srcarray.sort();
+let srcObjects = srcarray.map(i => ({display:i,key:GetSourceKey(i)}));
 
 let srcWeightings = "<table><caption>Source Weightings (Multiplicative)</caption>";
 
-srcarray.forEach((item)=>{
+srcObjects.forEach((item)=>{
 	if (item === "")
 		return;
-	srcWeightings += '<tr><td width="75%"><label for="' + item + '">' + item + '</label></td><td width="25%"><input class="treasureSource" type="number" name="' + item + '" id="' + item + '" min="0" max="100"></td></tr>'
+	srcWeightings += '<tr><td width="75%"><label for="' + item.key + '">' + item.display + '</label></td><td width="25%"><input class="treasureSource" type="number" name="' + item.key + '" id="' + item.key + '" min="0" max="100"></td></tr>'
 });
 srcWeightings += "</table>";
 
@@ -183,9 +184,9 @@ const formContent = `
 <td><label for="levelminus">% Level Down</label> <input class="treasureOption"  type="number" name="levelminus" id="levelminus" min="0" max="100"></td></tr></table></div>
 
 <div style="display:flex">
-<table><caption>Type of Treasure</caption><tr><td width="33%"><label for="No Treasure">No Treasure</label><input class="treasureOption"  type="number" name="No Treasure" id="No Treasure" min="0" max="100"></td>
-<td width="33%"><label for="Money">Money</label><input class="treasureOption"  type="number" name="Money" id="Money" min="0" max="100"></td>
-<td width="33%"><label for="Item">Item</label><input class="treasureOption"  type="number" name="Item" id="Item" min="0" max="100"></td></tr></table></div>
+<table><caption>Type of Treasure</caption><tr><td width="33%"><label for="noTreasure">No Treasure</label><input class="treasureOption"  type="number" name="noTreasure" id="noTreasure" min="0" max="100"></td>
+<td width="33%"><label for="money">Money</label><input class="treasureOption"  type="number" name="money" id="money" min="0" max="100"></td>
+<td width="33%"><label for="item">Item</label><input class="treasureOption"  type="number" name="item" id="item" min="0" max="100"></td></tr></table></div>
 
 <div style="display:flex">
 <table><caption>Item Type</caption><tr><td width="25%"><label for="consumable">Consumable</label><input class="treasureOption"  type="number" name="consumable" id="consumable" min="0" max="100"></td>
@@ -487,14 +488,14 @@ async function CalculateArmorWeight(rarity, source, armorType)
 
 function CalculateItemWeight(rarity, source, weaponType="", armorType="")
 {
-	console.log(settings);
+	//console.log(settings);
 	
 	let rweight = rarity===""?1:settings[rarity];
-	let sweight = (source===undefined||source==="")?1:settings.source[source];
+	let sweight = (source===undefined||source==="")?1:settings.source[GetSourceKey(source)];
 	let wweight = weaponType === ""?1:settings[weaponType];
 	let aweight = armorType === ""?1:settings[armorType];
 	let weight = rweight*sweight*wweight*aweight;
-	console.log ("Rarity " + rweight + ", Source " +source+":"+ sweight + ", Weapon " + wweight + ", Armor " + aweight + ", Total: " + weight);
+	//console.log ("Rarity " + rweight + ", Source " +source+":"+ sweight + ", Weapon " + wweight + ", Armor " + aweight + ", Total: " + weight);
 	if (isNaN(weight))
 		weight = 1;
 	return weight;
@@ -1352,7 +1353,7 @@ async function GetCompendiumObject(docID)
 
 async function GetCompendiumObjectFromDraw(drawResult)
 {
-	return GetCompendiumObject(drawResult.results[0].result.data.resultId);
+	return GetCompendiumObject(drawResult.results[0].data.resultId);
 }
 
 function ItemExistsOnCharacter(actor, docID)
@@ -1508,7 +1509,7 @@ async function UpdateOptions(html, tableName)
 	});
 	await Promise.all(weightArray.map(async (weighting) => { await table.updateEmbeddedDocuments('TableResult',[{_id:weighting.id,weight:weighting.weight}])}));
 }
-*/
+
 async function UpdateWeights(html, tableName, normalize=true)
 {
 	let totalWeight = 0;
@@ -1527,7 +1528,7 @@ async function UpdateWeights(html, tableName, normalize=true)
 	{
 		table.normalize();
 	}
-}
+}*/
 
 function GetOption(selectObject, isSource = false)
 {
@@ -1545,7 +1546,7 @@ function GetOption(selectObject, isSource = false)
 		else
 		{
 			//console.log("Couldn't find property with source name, updating to 1");
-			UpdateOption(selectObject, true, 1);
+			UpdateOption(selectObject, "source", 1);
 			return 1;
 		}
 	}
@@ -1596,4 +1597,9 @@ async function UpdateOption(selectObject, type="option", overrideValue=null)
 	 
 	//console.log("Settting flag: ");
 	//console.log(thisMacro.getFlag('world','PF2ETreasureGenSettings'));
+}
+
+function GetSourceKey(source)
+{
+	return source.replace(/[^a-zA-Z1-9_$]/g, "")
 }
