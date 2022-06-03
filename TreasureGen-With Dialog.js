@@ -1,7 +1,6 @@
 //TODO: Name and Level of Weapons/Armor
 //TODO: Merge pulls before putting on token.
 //TODO: Actually display in chat if needed
-//TODO: Work on all selected tokens
 //TODO: Separate settings into different GUIs.
 //TODO: Treasure isn't properly filtering by cost
 
@@ -1220,9 +1219,7 @@ async function GetCashTotal(totalValue)
 		let r = new Roll("1d"+(maxPlatinum+1)+"-1",{});
 		r=r.roll({async:false});
 		platinum = r.total;
-		//console.log("Allocating " + platinum + " out of " + maxPlatinum + " platinum.");
 		remainingWorth -= (platinum * 1000);
-		//console.log("Remaining Worth (in copper) : " + remainingWorth);	
 		if (platinum > 0)
 		{
 			let pp = await GetCompendiumObject(PlatinumID);
@@ -1237,9 +1234,7 @@ async function GetCashTotal(totalValue)
 		let r = new Roll("1d"+(maxGold+1)+"-1",{});
 		r=r.roll({async:false});
 		gold = r.total;
-		//console.log("Allocating " + gold + " out of " + maxGold + " gold.");
 		remainingWorth -= (gold * 100);
-		//console.log("Remaining Worth (in copper) : " + remainingWorth);		
 		if (gold > 0)
 		{
 			let gp = await GetCompendiumObject(GoldID);
@@ -1254,9 +1249,7 @@ async function GetCashTotal(totalValue)
 		let r = new Roll("1d"+(maxSilver+1)+"-1",{});
 		r=r.roll({async:false});
 		silver = r.total;
-		//console.log("Allocating " + silver + " out of " + maxSilver + " silver.");
 		remainingWorth -= (silver * 10);
-		//console.log("Remaining Worth (in copper) : " + remainingWorth);	
 		if (silver > 0)
 		{
 			let sp = await GetCompendiumObject(SilverID);
@@ -1362,22 +1355,15 @@ async function AddItemToCharacter(actor, docID, quantity, merge=true)
 	
 	if (merge && existingItems.length > 0)
 	{
-		//console.log("Attempting to combine stacks.");
 		let itemObject = existingItems[0];
-		//console.log("starts with " + itemObject.quantity);
 		let newQuantity = itemObject.quantity + quantity;
-		//console.log("added " + quantity + ", so now there are " + newQuantity);
 		await actor.updateEmbeddedDocuments('Item',[{_id:itemObject.id, 'data.quantity':newQuantity}]);
 	}
 	else
 	{
-		//console.log("Attempting to insert stack of " + quantity);
 		let itemToMove = await pack.getDocument(docID);
-		//console.log(itemToMove);
 		let itemObject = await itemToMove.toObject();
-		//console.log(itemObject);
 		itemObject.data.quantity = quantity;
-		//console.log(itemObject);
 		await actor.createEmbeddedDocuments('Item',[itemObject]);
 	}
 }
@@ -1426,130 +1412,27 @@ async function UpdateAllWeights(html)
 	console.log(weightMappings);
 }
 
-/*async function GetAllDefaultValues(html,srcArray)
-{
-	GetDefaultValues(html, "Treasure Type");
-	GetDefaultValues(html, "Armor Type");
-	GetDefaultValues(html, "Weapon Complexity");
-	GetDefaultValues(html, "Treasure Level");
-	GetDefaultValues(html, "Rarities");
-	GetDefaultValues(html, "Permanent Type");
-	GetDefaultValues(html, "Item Type");
-	GetDefaultOptions(html, "Options");
-	GetDefaultSources(html, "Source", srcArray);
-	if (macroActor === undefined || macroActor === null)
-	{
-		html.find('[name=clearInventory]')[0].disabled=true;
-		html.find('[name=insertInventory]')[0].disabled=true;
-		html.find('[name=useSelectedTokenLevel]')[0].disabled=true;
-	}	
-}
-
-async function GetDefaultSources(html, tableName, srcArray)
-{
-	let table = game.tables.find(t=>t.name===tableName);
-	//console.log(table);
-	let weightArray = table.data.results.map(x=>({id:x.data._id,name:x.data.text,weight:x.data.weight}));
-	//console.log(weightArray);
-	weightArray.forEach(element=>html.find('[name="'+element.name+'"]')[0].setAttribute("value",element.weight===undefined?0:element.weight));
-	if (weightArray.length == 0)
-		{
-		srcArray.forEach(element=>table.createEmbeddedDocuments('TableResult',[{type:0,text:element, weight:1,range:[1,1]}]));		
-		}
-	else
-	{
-		srcArray.forEach(element=>{
-			let temp = weightArray.filter(wa=>wa.name===element);
-			if(temp.length===0)
-			{
-				table.createEmbeddedDocuments('TableResult',[{type: 0,text:element, weight:1,range:[1,1]}]);
-			}
-		});
-	}
-}
-
-async function GetDefaultOptions(html, tableName)
-{
-	let table = game.tables.find(t=>t.name===tableName);
-	let weightArray = table.data.results.map(x=>({id:x.data._id,name:x.data.text,weight:x.data.weight}));
-	weightArray.forEach(element=>{
-		if (element.name==="clearInventory" || element.name==="insertInventory" || element.name==="showInChat"|| element.name==="useSelectedTokenLevel")
-			html.find('[name="'+element.name+'"]')[0].checked = element.weight===1?true:false;
-		else
-			html.find('[name="'+element.name+'"]')[0].setAttribute("value",element.weight===undefined?0:element.weight);
-		});	
-}
-
-async function GetDefaultValues(html, tableName)
-{
-	let table = game.tables.find(t=>t.name===tableName);
-	let weightArray = table.data.results.map(x=>({id:x.data._id,name:x.data.text,weight:x.data.weight}));
-	weightArray.forEach(element=>html.find('[name="'+element.name+'"]')[0].setAttribute("value",element.weight===undefined?0:element.weight));
-}
-
-async function UpdateOptions(html, tableName)
-{
-	let table = game.tables.find(t=>t.name===tableName);
-	let weightArray = table.data.results.map(x=>({id:x.data._id,name:x.data.text,weight:x.data.weight}));
-	weightArray.forEach(element=>{
-		if (element.name==="clearInventory" || element.name==="insertInventory" || element.name==="showInChat" || element.name==="useSelectedTokenLevel")
-			element.weight=html.find('[name="'+element.name+'"]')[0].checked?1:0;
-		else
-		{
-			element.weight=parseInt(html.find('[name="'+element.name+'"]')[0].value);
-		}
-	});
-	await Promise.all(weightArray.map(async (weighting) => { await table.updateEmbeddedDocuments('TableResult',[{_id:weighting.id,weight:weighting.weight}])}));
-}
-
-async function UpdateWeights(html, tableName, normalize=true)
-{
-	let totalWeight = 0;
-	let table = game.tables.find(t=>t.name===tableName);
-	let weightArray = table.data.results.map(x=>({id:x.data._id,name:x.data.text,weight:x.data.weight}));
-	if (tableName === "Source")
-	{
-		weightArray.forEach(element=>weightMappings.source[element.name]=element.weight);
-	}
-	
-	weightArray.forEach(element=>element.weight=parseInt(html.find('[name="'+element.name+'"]')[0].value));
-	weightArray.forEach(element=>totalWeight+=element.weight);
-	await Promise.all(weightArray.map(async (weighting) => { await table.updateEmbeddedDocuments('TableResult',[{_id:weighting.id,weight:weighting.weight}])}));
-	
-	if (normalize)
-	{
-		table.normalize();
-	}
-}*/
-
 function GetOption(selectObject, isSource = false)
 {
-	//console.log("Getting option.  selectObject is ");
-	//console.log(selectObject);
 	var optionName = selectObject.id;
-	//console.log(optionName);
 	if (isSource)
 	{
 		if (settings.source.hasOwnProperty(optionName))
 		{
-			//console.log("source " + optionName + " has value " + settings.source[optionName]);
 			return settings.source[optionName];
 		}
 		else
 		{
-			//console.log("Couldn't find property with source name, updating to 1");
 			UpdateOption(selectObject, "source", 1);
 			return 1;
 		}
 	}
 	if (settings.hasOwnProperty(optionName))
 	{
-		//console.log("option " + optionName + " has value " + settings[optionName]);
 		return settings[optionName];
 	}
 	else
 	{
-		//console.log("Couldn't find property with option "+optionName+", updating to 1");
 		UpdateOption(selectObject,false,1);
 		return 1;
 	}
@@ -1557,8 +1440,6 @@ function GetOption(selectObject, isSource = false)
 
 async function UpdateOption(selectObject, type="option", overrideValue=null)
 {
-	//console.log("Entered UpdateOption");
-	//console.log(selectObject);
 	var value;
 	if (type==="option" || type==="source")
 		value = parseInt(selectObject.value);
@@ -1572,23 +1453,14 @@ async function UpdateOption(selectObject, type="option", overrideValue=null)
 	
 	if (type==="source")
 	{
-		//console.log(settings);
-		//console.log("Setting source " + optionName + " to " + value);
 		settings.source[optionName] = value;
-		//console.log(settings);
 	}
 	else
 	{
-		//console.log(settings);
-		//console.log("Setting option " + optionName + " to " + value);
 		settings[optionName] = value;
-		//console.log(settings);
 	}
 	
 	let temp = await thisMacro.setFlag('world','PF2ETreasureGenSettings',settings);
-	 
-	//console.log("Settting flag: ");
-	//console.log(thisMacro.getFlag('world','PF2ETreasureGenSettings'));
 }
 
 function ToggleTreasureLevel()
