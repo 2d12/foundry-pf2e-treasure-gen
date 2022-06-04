@@ -1273,15 +1273,10 @@ async function PullMoney(level, options={}, showInChat=false)
 	let table = game.tables.find(t=>t.name==="Money");
 	let pcCount = options.pcs;
 	let moneyFlux = options.flux;
-	console.log("PC Count is " + pcCount);
-	console.log("Variation in worth is " + moneyFlux);
-	console.log(wealthByLevel);
 	let actualLevel = clamp(level,1,20); // Limit to the values wealth by level is defined for
 	 // 100 * because table is stored as gp
 	let averageWorth = 100 * (wealthByLevel[actualLevel].party + (wealthByLevel[actualLevel].pc * (pcCount - 4)));
 	averageWorth /= options.divisor;
-	
-	console.log("Base average worth is " + averageWorth + " cp");
 	
 	// Check for cash-only pull
 	let r = new Roll("1d100",{async:true});
