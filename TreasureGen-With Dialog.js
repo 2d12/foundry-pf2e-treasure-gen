@@ -1,3 +1,9 @@
+//TODO: Name and Level of Weapons/Armor
+//TODO: Merge pulls before putting on token.
+//TODO: Actually display in chat if needed
+//TODO: Separate settings into different GUIs.
+//TODO: Treasure isn't properly filtering by cost
+
 const thisMacro = this;
 
 const selectedTokens = canvas.tokens.controlled;
@@ -114,10 +120,11 @@ const wealthByLevel = {
 
 const pack = game.packs.get(CompendiumID);
 const docs = await pack.getDocuments();
-/*let typearray = docs.map(i => i.type);
+let typearray = docs.map(i => i.type);
 typearray = [...new Set(typearray)];
-console.log(typearray);*/
+console.log(typearray);
 
+//console.log(docs);
 let srcarray = docs.map(i => i.data.data.source.value);
 srcarray = [...new Set(srcarray)];
 srcarray = srcarray.filter(x=>x!=="");
@@ -275,6 +282,8 @@ async function ChooseOption(optionList)
 	
 	let r = new Roll("1d"+totalWeight,{async:true});
 	await r.roll({async:true});
+	console.log(r);
+	console.log(optionList);
 	for (let i = 0; i < optionList.length; i++)
 	{
 		if (r.total <= optionList[i].maxRoll)
@@ -298,7 +307,7 @@ async function GenerateAllTreasure(html)
 	for (let a = 0; a < actors.length; a++)
 	{
 		if (settings.clearInventory)
-		{	
+		{	console.log(actors[a]);
 			ClearTokenInventory(actors[a]);
 		}
 		let tokenItemLevel = baseItemLevel;
@@ -416,11 +425,7 @@ async function GenerateAllTreasure(html)
 async function GetItemLevel(baseLevel, chanceToIncrease, chanceToDecrease)
 {
 	let finalLevel = baseLevel;
-	let levelOptions = [{text:"lvlPlusOne",weight:settings.lvlPlusOne},
-						{text:"lvlPlusZero",weight:settings.lvlPlusZero},
-						{text:"lvlMinusOne",weight:settings.lvlMinusOne},];
-	let levelText = await ChooseOption(levelOptions);
-	
+	let levelText = await DrawTextFromTable("Treasure Level");
 	if (levelText==="lvlPlusOne")
 	{
 		finalLevel++;
@@ -457,14 +462,9 @@ async function GetItemLevel(baseLevel, chanceToIncrease, chanceToDecrease)
 		
 	} while (direction < 2);
 	
-	finalLevel = clamp(finalLevel, 0,30);
+	finalLevel = Math.max(finalLevel, 0);
 	LogToChat("Final Item Level is " + finalLevel);
 	return finalLevel;
-}
-
-function clamp(num, min, max)
-{
-	return Math.min(Math.max(num, min),max);
 }
 
 async function CalculateWeaponWeight(rarity, source, weaponType)
@@ -1190,16 +1190,17 @@ function GetPriceInCopper(price)
 function TreasureCallback(minworth,maxworth)
 {
 	return function(value) {
-		let rv = true;	
+		let rv = true;		
 		let price = GetPriceInCopper (value.price);
 		if (value.type !== "treasure" && false === value.data.data.traits.value.includes("precious"))
 		{
 			rv  = false;
 		}
-		if (rv && ((price > maxworth) || (price < minworth)))
+		if (rv && (price <= maxworth) && (price >= minworth))
 		{
 			rv = false;
 		}
+		
 		return rv;
 	}
 }
@@ -1273,15 +1274,10 @@ async function PullMoney(level, options={}, showInChat=false)
 	let table = game.tables.find(t=>t.name==="Money");
 	let pcCount = options.pcs;
 	let moneyFlux = options.flux;
-	console.log("PC Count is " + pcCount);
-	console.log("Variation in worth is " + moneyFlux);
-	console.log(wealthByLevel);
-	let actualLevel = clamp(level,1,20); // Limit to the values wealth by level is defined for
+		
 	 // 100 * because table is stored as gp
-	let averageWorth = 100 * (wealthByLevel[actualLevel].party + (wealthByLevel[actualLevel].pc * (pcCount - 4)));
+	let averageWorth = 100 * (wealthByLevel[level].party + (wealthByLevel[level].pc * (pcCount - 4)));
 	averageWorth /= options.divisor;
-	
-	console.log("Base average worth is " + averageWorth + " cp");
 	
 	// Check for cash-only pull
 	let r = new Roll("1d100",{async:true});
@@ -1300,8 +1296,9 @@ async function PullMoney(level, options={}, showInChat=false)
 	else
 	{
 		console.log("Pulling treasure item!");
-		let maxWorth = parseInt(averageWorth * (1 + (moneyFlux / 100))); // Force to Integer value
-		let minWorth = parseInt(averageWorth * (1 - (moneyFlux / 100))); // Force to Integer value
+		let maxWorth = averageWorth * (1 + (moneyFlux / 100));
+		let minWorth = averageWorth * (1 - (moneyFlux / 100));
+		
 		let entries=docs.filter(TreasureCallback(minWorth,maxWorth));
 			
 		let weightedEntries = entries.map(e=>({img:e.img, collection:e.compendium.collection, resultId:e.id, text:e.data.name, rarity:e.rarity, source:e.data.data.source.value, weight:CalculateItemWeight(e.rarity, e.data.data.source.value),type:2,range:[1,1]}));
