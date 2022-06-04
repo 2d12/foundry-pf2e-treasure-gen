@@ -1,9 +1,3 @@
-//TODO: Name and Level of Weapons/Armor
-//TODO: Merge pulls before putting on token.
-//TODO: Actually display in chat if needed
-//TODO: Separate settings into different GUIs.
-//TODO: Treasure isn't properly filtering by cost
-
 const thisMacro = this;
 
 const selectedTokens = canvas.tokens.controlled;
@@ -120,11 +114,7 @@ const wealthByLevel = {
 
 const pack = game.packs.get(CompendiumID);
 const docs = await pack.getDocuments();
-let typearray = docs.map(i => i.type);
-typearray = [...new Set(typearray)];
-console.log(typearray);
 
-//console.log(docs);
 let srcarray = docs.map(i => i.data.data.source.value);
 srcarray = [...new Set(srcarray)];
 srcarray = srcarray.filter(x=>x!=="");
@@ -145,20 +135,16 @@ let weightMappings = {rarity:{common:1,uncommon:1,rare:1,unique:1},weapon:{simpl
 const formContent = `
 <div style="flex-wrap:nowrap;display:flex;">
 <div style="height:750px;overflow:scroll;float:left;">
-
 <input class="treasureOptionCheck ignorePCCheck" type="checkbox" id="ignorePCTokens" name="ignorePCTokens"><label for="ignorePCTokens">Ignore PC Tokens</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="clearInventory" name="clearInventory"><label for="clearInventory">Clear Selected Tokens Inventory?</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="insertInventory" name="insertInventory"><label for="insertInventory">Insert into Selected Tokens Inventory?</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="mergeInventory" name="mergeInventory"><label for="mergeInventory">Merge Inventory?</label><br><br>
 <input class="treasureOptionCheck useSelectedTokenCheck" type="checkbox" id="useSelectedTokenLevel" name="useSelectedTokenLevel"><label for="useSelectedTokenLevel">Use Selected Token's Level?</label><br>
 <input class="treasureOptionCheck" type="checkbox" id="showInChat" name="showInChat"><label for="showInChat">Show Result in Chatbox?</label><br><br>
-
 <div><label for="quantity">Rolls Per Token</label><input class="treasureOption" type="number" name="quantity" id="quantity" min="1" max="30"><br></div>
-
 <div id="treasurelvl">
 <label for="level">Treasure Level</label> <input type="number" name="level" id="level" min="-1" max="30" value="`+GetFilteredTokensMaxLevel()+`"><br>
 </div>
-
 <h3>Weights (Hard)</h3>
 <div><table><caption>Treasure Level compared to Defined Level</caption><tr><td width="33%"><label for="lvlPlusOne">Level + 1</label><input class="treasureOption"  type="number" name="lvlPlusOne" id="lvlPlusOne" min="0" max="100"></td>
 <td width="33%"><label for="lvlPlusZero">Level</label><input class="treasureOption"  type="number" name="lvlPlusZero" id="lvlPlusZero" min="0" max="100"></td>
@@ -166,17 +152,14 @@ const formContent = `
 <table><tr>
 <td><label for="levelplus">% Level Up</label> <input class="treasureOption"  type="number" name="levelplus" id="levelplus" min="0" max="100"><br></td>
 <td><label for="levelminus">% Level Down</label> <input class="treasureOption"  type="number" name="levelminus" id="levelminus" min="0" max="100"></td></tr></table></div>
-
 <div style="display:flex">
 <table><caption>Type of Treasure</caption><tr><td width="33%"><label for="noTreasure">No Treasure</label><input class="treasureOption"  type="number" name="noTreasure" id="noTreasure" min="0" max="100"></td>
 <td width="33%"><label for="money">Money</label><input class="treasureOption"  type="number" name="money" id="money" min="0" max="100"></td>
 <td width="33%"><label for="item">Item</label><input class="treasureOption"  type="number" name="item" id="item" min="0" max="100"></td></tr></table></div>
-
 <div style="display:flex">
 <table><caption>Item Type</caption><tr><td width="25%"><label for="consumable">Consumable</label><input class="treasureOption"  type="number" name="consumable" id="consumable" min="0" max="100"></td>
 <td width="25%"><label for="permanent">Permanent</label><input class="treasureOption"  type="number" name="permanent" id="permanent" min="0" max="100"></td>
 </tr></table></div>
-
 <div>
 <table><caption>Permanent Item Relative Weights</caption>
 <tr>
@@ -197,7 +180,6 @@ const formContent = `
 <td><label for="armorresilient">Resilient</label> <input class="treasureOption"  type="number" name="armorresilient" id="armorresilient" min="0" max="100"></td>
 <td><label for="armorproperty">Armor Property</label> <input class="treasureOption"  type="number" name="armorproperty" id="armorproperty" min="0" max="100"></td>
 </tr></table></div>
-
 <div>
 <table><caption>Wealth Options</caption><tr>
 <td><label for="moneyDivisor">Divisor</label><input class="treasureOption"  type="number" name="moneyDivisor" id="moneyDivisor" min="1" max="100"></td>
@@ -213,12 +195,10 @@ const formContent = `
 <td width="25%"><label for="uncommon">Uncommon</label><input class="treasureOption"  type="number" name="uncommon" id="uncommon" min="0" max="100"></td>
 <td width="25%"><label for="rare">Rare</label><input class="treasureOption"  type="number" name="rare" id="rare" min="0" max="100"></td>
 <td width="25%"><label for="unique">Unique</label><input class="treasureOption"  type="number" name="unique" id="unique" min="0" max="100"></td></tr></table></div>
-
 <div style="display:flex">
 <table><caption>Weapon Complexity</caption><tr><td width="25%"><label for="simple">Simple Weapons</label><input class="treasureOption"  type="number" name="simple" id="simple" min="0" max="100"></td>
 <td width="25%"><label for="martial">Martial Weapons</label><input class="treasureOption"  type="number" name="martial" id="martial" min="0" max="100"></td>
 <td width="25%"><label for="advanced">Advanced Weapons</label><input class="treasureOption"  type="number" name="advanced" id="advanced" min="0" max="100"></td></tr></table></div>
-
 <div style="display:flex">
 <table><caption>Armor Type</caption><tr><td width="25%"><label for="light">Light Armor</label><input class="treasureOption"  type="number" name="light" id="light" min="0" max="100"></td>
 <td width="25%"><label for="medium">Medium Armor</label><input class="treasureOption"  type="number" name="medium" id="medium" min="0" max="100"></td>
@@ -282,8 +262,6 @@ async function ChooseOption(optionList)
 	
 	let r = new Roll("1d"+totalWeight,{async:true});
 	await r.roll({async:true});
-	console.log(r);
-	console.log(optionList);
 	for (let i = 0; i < optionList.length; i++)
 	{
 		if (r.total <= optionList[i].maxRoll)
@@ -307,7 +285,7 @@ async function GenerateAllTreasure(html)
 	for (let a = 0; a < actors.length; a++)
 	{
 		if (settings.clearInventory)
-		{	console.log(actors[a]);
+		{	
 			ClearTokenInventory(actors[a]);
 		}
 		let tokenItemLevel = baseItemLevel;
@@ -425,7 +403,10 @@ async function GenerateAllTreasure(html)
 async function GetItemLevel(baseLevel, chanceToIncrease, chanceToDecrease)
 {
 	let finalLevel = baseLevel;
-	let levelText = await DrawTextFromTable("Treasure Level");
+	let levelOptions = [{text:"lvlPlusOne",weight:settings.lvlPlusOne},	
+						{text:"lvlPlusZero",weight:settings.lvlPlusZero},	
+						{text:"lvlMinusOne",weight:settings.lvlMinusOne},];	
+	let levelText = await ChooseOption(levelOptions);
 	if (levelText==="lvlPlusOne")
 	{
 		finalLevel++;
@@ -462,9 +443,14 @@ async function GetItemLevel(baseLevel, chanceToIncrease, chanceToDecrease)
 		
 	} while (direction < 2);
 	
-	finalLevel = Math.max(finalLevel, 0);
+	finalLevel = clamp(finalLevel, 0, 30);
 	LogToChat("Final Item Level is " + finalLevel);
 	return finalLevel;
+}
+
+function clamp(num, min, max)
+{
+	return Math.min(Math.max(num,min),max);
 }
 
 async function CalculateWeaponWeight(rarity, source, weaponType)
@@ -1196,7 +1182,7 @@ function TreasureCallback(minworth,maxworth)
 		{
 			rv  = false;
 		}
-		if (rv && (price <= maxworth) && (price >= minworth))
+		if (rv && ((price > maxworth) || (price < minworth)))
 		{
 			rv = false;
 		}
@@ -1275,8 +1261,9 @@ async function PullMoney(level, options={}, showInChat=false)
 	let pcCount = options.pcs;
 	let moneyFlux = options.flux;
 	let actualLevel = clamp(level,1,20); // Limit to the values wealth by level is defined for
+	console.log("Money level clamped, value now " + actualLevel);
 	// 100 * because table is stored as gp
-	let averageWorth = 100 * (wealthByLevel[level].party + (wealthByLevel[level].pc * (pcCount - 4)));
+	let averageWorth = 100 * (wealthByLevel[actualLevel].party + (wealthByLevel[actualLevel].pc * (pcCount - 4)));
 	averageWorth /= options.divisor;
 	
 	// Check for cash-only pull
@@ -1296,8 +1283,8 @@ async function PullMoney(level, options={}, showInChat=false)
 	else
 	{
 		console.log("Pulling treasure item!");
-		let maxWorth = averageWorth * (1 + (moneyFlux / 100));
-		let minWorth = averageWorth * (1 - (moneyFlux / 100));
+		let maxWorth = parseInt(averageWorth * (1 + (moneyFlux / 100))); // Force to integer value
+		let minWorth = parseInt(averageWorth * (1 - (moneyFlux / 100))); // Force to integer value
 		
 		let entries=docs.filter(TreasureCallback(minWorth,maxWorth));
 			
