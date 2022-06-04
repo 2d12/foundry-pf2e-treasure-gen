@@ -1274,8 +1274,8 @@ async function PullMoney(level, options={}, showInChat=false)
 	let table = game.tables.find(t=>t.name==="Money");
 	let pcCount = options.pcs;
 	let moneyFlux = options.flux;
-		
-	 // 100 * because table is stored as gp
+	let actualLevel = clamp(level,1,20); // Limit to the values wealth by level is defined for
+	// 100 * because table is stored as gp
 	let averageWorth = 100 * (wealthByLevel[level].party + (wealthByLevel[level].pc * (pcCount - 4)));
 	averageWorth /= options.divisor;
 	
