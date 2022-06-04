@@ -395,8 +395,8 @@ async function GenerateAllTreasure(html)
 				LogToChat("Unexpected Treasure Type: " + ttype);
 			}
 		}
-		
-		LogToChat(items);
+		console.log(items);
+		LogToChat("Draw Results",true,actors[a],items);
 	}
 }
 
@@ -1360,12 +1360,49 @@ async function ClearTokenInventory(actor)
 	await actor.deleteEmbeddedDocuments('Item', actor.items.filter(value=> (value.data.type === "weapon" || value.data.type === "treasure" || value.data.type === "armor" || value.data.type === "equipment" || value.data.type === "consumable" || value.data.type === "backpack")).map(i=>i.id));
 }
 
-function LogToChat(str, toChat=false, toConsole=true)
+async function GetCompendiumLink(item)
 {
-	if (toChat)
+	let str = "@Compendium[" + CompendiumID + "." + item._id + "]{"+item.name+"}";
+	return str;
+}
+
+async function LogToChat(str, toConsole=true, actor=null, items=null)
+{
+	if (items === null && settings.showInChat)
+	{
+		if (str.length > 0)
+		{
+			ChatMessage.create({content:str});
+			if (toConsole)
+				console.log(str);
+		}
+		return;
+	}
+	console.log(items);
+	let drawnItemString;
+	if (actor === null)
+		drawnItemString = "Selected Token draws the following: <br>";
+	else
+		drawnItemString = actor.name + " draws the following: <br>";
+	if (items === null || items.length === 0)
+	{
+		drawnItemString += " None";
+	}
+	else
+	{
+		for (let i = 0; i < items.length; i++)
+		{
+			let itemLink = await GetCompendiumLink(items[i]);
+			if (items[i].hasOwnProperty('quantity'))
+				drawnItemString += (items[i].quantity + "x ");
+			drawnItemString += (itemLink + "<br>");
+		}
+	}
+	
+	if (settings.showInChat)
 	{
 		ChatMessage.create({
-			content: str,
+			content: str + "<br>" + drawnItemString,
 		});
 	}
 	if (toConsole)
