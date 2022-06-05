@@ -307,7 +307,7 @@ async function GenerateAllTreasure(html)
 			
 			if (ttype === "No Treasure")
 				{
-					LogToChat("Pull " + (i+1) + " of " + numberOfTreasureRolls + " resulted in no treasure.");
+					console.log("Pull " + (i+1) + " of " + numberOfTreasureRolls + " resulted in no treasure.");
 					continue;
 				}
 			else if (ttype ==="Item")
@@ -316,10 +316,10 @@ async function GenerateAllTreasure(html)
 					{text:"permanent",weight:settings.permanent}];
 				let itype = await ChooseOption(itemTypeOptions);
 				
-				LogToChat("Draw from Item Type Table resulted in " + itype);
+				console.log("Draw from Item Type Table resulted in " + itype);
 				if (itype === "consumable")
 				{
-					LogToChat("Pulling a consumable item");
+					console.log("Pulling a consumable item");
 					let itemDrawn = await PullConsumableItem(iLevel);
 					items.push(...itemDrawn);
 				}
@@ -332,10 +332,10 @@ async function GenerateAllTreasure(html)
 						{text:"perm_armor_generic",weight:settings.perm_armor_generic}];
 					let ptype = await ChooseOption(permanentTypeOptions);
 										
-					LogToChat("Draw from Permanent Type Table resulted in " + ptype);
+					console.log("Draw from Permanent Type Table resulted in " + ptype);
 					if (ptype === "perm_armor" || ptype==="perm_armor_generic")
 					{
-						LogToChat("Pulling armor");
+						console.log("Pulling armor");
 						let probabilities = 
 							{
 							generic:ptype==="perm_armor_generic"?100:0,
@@ -349,7 +349,7 @@ async function GenerateAllTreasure(html)
 					}
 					else if (ptype === "perm_weapon" || ptype==="perm_weapon_generic")
 					{
-						LogToChat("Pulling weapon");
+						console.log("Pulling weapon");
 						let probabilities = 
 							{
 							generic:ptype==="perm_weapon_generic"?100:0,
@@ -363,23 +363,23 @@ async function GenerateAllTreasure(html)
 					}
 					else if (ptype === "perm_other")
 					{
-						LogToChat("Pulling permanent item");
+						console.log("Pulling permanent item");
 						let itemDrawn = await PullPermanentItem(iLevel);
 						items.push(...itemDrawn);
 					}
 					else
 					{
-						LogToChat("Unexpected Permanent Type: " + ptype);
+						console.log("Unexpected Permanent Type: " + ptype);
 					}					
 				}
 				else
 				{
-					LogToChat("Unexpected Item Type: " + itype);
+					console.log("Unexpected Item Type: " + itype);
 				}
 			}
 			else if (ttype ==="Money")
 			{
-				LogToChat("Pulling money");
+				console.log("Pulling money");
 				let options = {
 						pcs:settings.pcCount,
 						flux:settings.moneyflux,
@@ -392,11 +392,11 @@ async function GenerateAllTreasure(html)
 			}
 			else
 			{
-				LogToChat("Unexpected Treasure Type: " + ttype);
+				console.log("Unexpected Treasure Type: " + ttype);
 			}
 		}
-		
-		LogToChat(items);
+		console.log(items);
+		LogToChat("Draw Results",actors[a],items);
 	}
 }
 
@@ -418,7 +418,7 @@ async function GetItemLevel(baseLevel, chanceToIncrease, chanceToDecrease)
 		}
 	else
 		{
-			LogToChat("Unexpected Item Level Value: " + levelText);
+			console.log("Unexpected Item Level Value: " + levelText);
 		}
 	let direction = 0;
 	do {
@@ -444,7 +444,7 @@ async function GetItemLevel(baseLevel, chanceToIncrease, chanceToDecrease)
 	} while (direction < 2);
 	
 	finalLevel = clamp(finalLevel, 0, 30);
-	LogToChat("Final Item Level is " + finalLevel);
+	console.log("Final Item Level is " + finalLevel);
 	return finalLevel;
 }
 
@@ -1360,16 +1360,51 @@ async function ClearTokenInventory(actor)
 	await actor.deleteEmbeddedDocuments('Item', actor.items.filter(value=> (value.data.type === "weapon" || value.data.type === "treasure" || value.data.type === "armor" || value.data.type === "equipment" || value.data.type === "consumable" || value.data.type === "backpack")).map(i=>i.id));
 }
 
-function LogToChat(str, toChat=false, toConsole=true)
+async function GetCompendiumLink(item)
 {
-	if (toChat)
+	let str = "@Compendium[" + CompendiumID + "." + item._id + "]{"+item.name+"}";
+	return str;
+}
+
+async function LogToChat(str, actor=null, items=null)
+{
+	if (items === null && settings.showInChat)
+	{
+		if (str.length > 0)
+		{
+			ChatMessage.create({content:str});
+		}
+		return;
+	}
+	
+	let drawnItemString;
+	if (actor === null)
+		drawnItemString = "Selected Token draws the following: <br>";
+	else
+		drawnItemString = actor.name + " draws the following: <br>";
+	if (items === null || items.length === 0)
+	{
+		drawnItemString += " None";
+	}
+	else
+	{
+		for (let i = 0; i < items.length; i++)
+		{
+			let itemLink = await GetCompendiumLink(items[i]);
+			if (items[i].hasOwnProperty('quantity'))
+				drawnItemString += (items[i].quantity + "x ");
+			drawnItemString += (itemLink + "<br>");
+		}
+	}
+	
+	if (settings.showInChat)
 	{
 		ChatMessage.create({
-			content: str,
+			type:3,
+			flavor: str,
+			content: drawnItemString,
 		});
 	}
-	if (toConsole)
-		console.log(str);
 }
 
 async function UpdateAllWeights(html)
